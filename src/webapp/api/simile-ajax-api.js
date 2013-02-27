@@ -3,24 +3,44 @@
  *==================================================
  */
 
-if (typeof SimileAjax == "undefined") {
-    var isCompiled = ("SimileAjax_isCompiled" in window) && window.SimileAjax_isCompiled;
+/*==================================================
+ *  REMEMBER to update the Version!
+ *==================================================
+ */
 
-    var SimileAjax = {
-        loaded:                 false,
-        loadingScriptsCount:    0,
-        error:                  null,
-        params:                 { bundle:"true" }
-    };
-    
-    SimileAjax.Platform = new Object();
-        /*
-            HACK: We need these 2 things here because we cannot simply append
-            a <script> element containing code that accesses SimileAjax.Platform
-            to initialize it because IE executes that <script> code first
-            before it loads ajax.js and platform.js.
-        */
-        
+define([
+    "base",
+    "platform",
+    "debug",
+    "xmlhttp",
+    "dom",
+    "bubble",
+    "date-time",
+    "string",
+    "html",
+    "set",
+    "sorted-array",
+    "event-index",
+    "units",
+    "ajax",
+    "history",
+    "window-manager"
+], function(SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtilities, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
+    SimileAjax.Platform = Platform;
+    SimileAjax.Debug = Debug;
+    SimileAjax.XmlHttp = XmlHttp;
+    SimileAjax.DOM = DOM;
+    SimileAjax.Graphics = Graphics;
+    SimileAjax.DateTime = DateTime;
+    SimileAjax.HTML = HTML;
+    SimileAjax.Set = Set;
+    SimileAjax.SortedArray = SortedArray;
+    SimileAjax.EventIndex = EventIndex;
+    SimileAjax.NativeDateUnit = NativeDateUnit;
+    SimileAjax.ListenerQueue = ListenerQueue;
+    SimileAjax.History = SAHistory;
+    SimileAjax.WindowManager = WindowManager;
+
     var getHead = function(doc) {
         return doc.getElementsByTagName("head")[0];
     };
@@ -52,7 +72,13 @@ if (typeof SimileAjax == "undefined") {
         return null;
     };
 
+    /**
+     * @deprecated
+     */
     SimileAjax.includeJavascriptFile = function(doc, url, onerror, charset, callback) {
+        SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
+        return;
+
         onerror = onerror || "";
         if (doc.body == null) {
             try {
@@ -96,7 +122,10 @@ if (typeof SimileAjax == "undefined") {
         return getHead(doc).appendChild(script);
     };
 
-    function includeJavascriptList(doc, urlPrefix, filenames, included, index, callback) {
+    /**
+     * @deprecated Use RequireJS loading mechanisms instead.
+     */
+    var includeJavascriptList = function(doc, urlPrefix, filenames, included, index, callback) {
         if (!included[index]) { // avoid duplicate callback
             included[index] = true;
             if (index<filenames.length) { 
@@ -111,9 +140,15 @@ if (typeof SimileAjax == "undefined") {
 	    }
             else if (callback != null) callback();
         }
-    }
+    };
     
+    /**
+     * @deprecated Use RequireJS loading mechanisms instead.
+     */
     SimileAjax.includeJavascriptFiles = function(doc, urlPrefix, filenames) {
+        SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
+        return;
+
 	if (doc.body == null) {
             for (var i = 0; i < filenames.length; i++) {
                 SimileAjax.includeJavascriptFile(doc, urlPrefix + filenames[i]);
@@ -158,6 +193,7 @@ if (typeof SimileAjax == "undefined") {
         }
     };
     
+    // @@@unnecessary, what to do with it?
     /**
      * Append into urls each string in suffixes after prefixing it with urlPrefix.
      * @param {Array} urls
@@ -223,33 +259,10 @@ if (typeof SimileAjax == "undefined") {
         return to;
     };
     
-    if (!isCompiled) {
-        (function() {
-            var javascriptFiles = [
-                "platform.js",
-                "debug.js",
-                "xmlhttp.js",
-                "json.js",
-                "dom.js",
-                "graphics.js",
-                "date-time.js",
-                "string.js",
-                "html.js",
-                "data-structure.js",
-                "units.js",
-                
-                "ajax.js",
-                "history.js",
-                "window-manager.js"
-            ];
-            var cssFiles = [
+    SimileAjax.load = function() {
+           var cssFiles = [
                 "graphics.css"
             ];
-            if (!("jQuery" in window) && !("$" in window)) {
-//                javascriptFiles.unshift("jquery-1.4.2.min.js");
-		SimileAjax.includeJavascriptFile(document, "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js");
-            }
-            
 
             if (typeof SimileAjax_urlPrefix == "string") {
                 SimileAjax.urlPrefix = SimileAjax_urlPrefix;
@@ -261,21 +274,15 @@ if (typeof SimileAjax == "undefined") {
                 }
 
                 SimileAjax.urlPrefix = url.substr(0, url.indexOf("simile-ajax-api.js"));
-                SimileAjax.parseURLParameters(url, SimileAjax.params, { bundle: Boolean });
             }
 
-
-
-            if (!isCompiled) {
-                if (SimileAjax.params.bundle) {
-                    SimileAjax.includeJavascriptFiles(document, SimileAjax.urlPrefix, [ "simile-ajax-bundle.js" ]);
-                } else {
-                    SimileAjax.includeJavascriptFiles(document, SimileAjax.urlPrefix + "scripts/", javascriptFiles);
-                }
-                SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
-            }
+            SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
             
             SimileAjax.loaded = true;
-        })();
-    }
-}
+
+        SimileAjax.History.initialize();
+        SimileAjax.WindowManager.initialize();
+    };
+
+    return SimileAjax;
+});

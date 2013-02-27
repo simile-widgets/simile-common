@@ -3,6 +3,9 @@
  *==================================================
  */
 
+// This file is terrible and should really not be perpetuated.  Modifying
+// base language data types is bad engineering.  To be removed.
+define(function() {
 String.prototype.trim = function() {
     return this.replace(/^\s+|\s+$/g, '');
 };
@@ -41,3 +44,6 @@ String.substitute = function(s, objects) {
     }
     return result;
 };
+
+    return null;
+});

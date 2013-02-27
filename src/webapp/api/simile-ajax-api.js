@@ -240,8 +240,7 @@ if (typeof SimileAjax == "undefined") {
                 
                 "ajax.js",
                 "history.js",
-                "window-manager.js",
-                "remoteLog.js"
+                "window-manager.js"
             ];
             var cssFiles = [
                 "graphics.css"

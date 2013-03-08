@@ -24,7 +24,7 @@ NativeDateUnit.getParser = function(format) {
                     DateTime.parseGregorianDateTime;
                     
     return function(d) {
-        if (typeof d != 'undefined' && typeof d.toUTCString == "function") {
+        if (typeof d != 'undefined' && d !== null && typeof d.toUTCString == "function") {
             return d;
         } else {
             return parser(d);

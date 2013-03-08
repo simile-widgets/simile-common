@@ -9,29 +9,30 @@
  */
 
 define([
-    "base",
-    "platform",
-    "debug",
-    "xmlhttp",
-    "dom",
-    "bubble",
-    "date-time",
-    "string",
-    "html",
-    "set",
-    "sorted-array",
-    "event-index",
-    "units",
-    "ajax",
-    "history",
-    "window-manager"
-], function(SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtilities, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
+    "./scripts/base",
+    "./scripts/platform",
+    "./scripts/debug",
+    "./scripts/xmlhttp",
+    "./scripts/dom",
+    "./scripts/bubble",
+    "./scripts/date-time",
+    "./scripts/string",
+    "./scripts/html",
+    "./scripts/set",
+    "./scripts/sorted-array",
+    "./scripts/event-index",
+    "./scripts/units",
+    "./scripts/ajax",
+    "./scripts/history",
+    "./scripts/window-manager"
+], function(SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
     SimileAjax.Platform = Platform;
     SimileAjax.Debug = Debug;
     SimileAjax.XmlHttp = XmlHttp;
     SimileAjax.DOM = DOM;
     SimileAjax.Graphics = Graphics;
     SimileAjax.DateTime = DateTime;
+    SimileAjax.StringUtils = StringUtils;
     SimileAjax.HTML = HTML;
     SimileAjax.Set = Set;
     SimileAjax.SortedArray = SortedArray;
@@ -206,59 +207,6 @@ define([
         }
     };
 
-    /**
-     * Parse out the query parameters from a URL
-     * @param {String} url    the url to parse, or location.href if undefined
-     * @param {Object} to     optional object to extend with the parameters
-     * @param {Object} types  optional object mapping keys to value types
-     *        (String, Number, Boolean or Array, String by default)
-     * @return a key/value Object whose keys are the query parameter names
-     * @type Object
-     */
-    SimileAjax.parseURLParameters = function(url, to, types) {
-        to = to || {};
-        types = types || {};
-        
-        if (typeof url == "undefined") {
-            url = location.href;
-        }
-        var q = url.indexOf("?");
-        if (q < 0) {
-            return to;
-        }
-        url = (url+"#").slice(q+1, url.indexOf("#")); // toss the URL fragment
-        
-        var params = url.split("&"), param, parsed = {};
-        var decode = window.decodeURIComponent || unescape;
-        for (var i = 0; param = params[i]; i++) {
-            var eq = param.indexOf("=");
-            var name = decode(param.slice(0,eq));
-            var old = parsed[name];
-            var replacement = decode(param.slice(eq+1));
-            
-            if (typeof old == "undefined") {
-                old = [];
-            } else if (!(old instanceof Array)) {
-                old = [old];
-            }
-            parsed[name] = old.concat(replacement);
-        }
-        for (var i in parsed) {
-            if (!parsed.hasOwnProperty(i)) continue;
-            var type = types[i] || String;
-            var data = parsed[i];
-            if (!(data instanceof Array)) {
-                data = [data];
-            }
-            if (type === Boolean && data[0] == "false") {
-                to[i] = false; // because Boolean("false") === true
-            } else {
-                to[i] = type.apply(this, data);
-            }
-        }
-        return to;
-    };
-    
     SimileAjax.load = function() {
            var cssFiles = [
                 "graphics.css"
@@ -272,7 +220,6 @@ define([
                     SimileAjax.error = new Error("Failed to derive URL prefix for Simile Ajax API code files");
                     return;
                 }
-
                 SimileAjax.urlPrefix = url.substr(0, url.indexOf("simile-ajax-api.js"));
             }
 

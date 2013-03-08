@@ -3,7 +3,7 @@
  *==================================================
  */
 
-define(function() {
+define(["./base"], function(SimileAjax) {
 var Debug = {
     silent: false
 };

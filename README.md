@@ -15,9 +15,9 @@ SimileAjax is open source software and is licensed under the modified BSD licens
 
 This code contains libraries found in `src/webapp/api/lib/` that are covered by their own licenses.
 
- * (jQuery)[http://jquery.com/] is covered by (The MIT License)[http://jquery.org/license/].
- * (JSON2)[http://www.json.org/] is covered by (The JSON License)[http://www.json.org/license.html].
- * (RequireJS)[http://requirejs.org/] and its i18n plugin are covered by the (modified BSD license)[https://github.com/jrburke/requirejs/blob/master/LICENSE].
+ * [jQuery](http://jquery.com/) is covered by [The MIT License](http://jquery.org/license/).
+ * [JSON2](http://www.json.org/) is covered by [The JSON License](http://www.json.org/license.html).
+ * [RequireJS](http://requirejs.org/) and its i18n plugin are covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
 
 Latest Release - 3.0.0
 ----------------------

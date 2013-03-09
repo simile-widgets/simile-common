@@ -4,7 +4,7 @@
  */
 
 /*==================================================
- *  REMEMBER to update the Version!
+ *  REMEMBER to update the Version!  Now found in scripts/base.js
  *==================================================
  */
 
@@ -74,102 +74,19 @@ define([
     };
 
     /**
-     * @deprecated
+     * @deprecated Use RequireJS loading mechanisms instead.
      */
     SimileAjax.includeJavascriptFile = function(doc, url, onerror, charset, callback) {
         SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
         return;
-
-        onerror = onerror || "";
-        if (doc.body == null) {
-            try {
-                var q = "'" + onerror.replace( /'/g, '&apos' ) + "'"; // "
-                doc.write("<script src='" + url + "' onerror="+ q +
-                          (charset ? " charset='"+ charset +"'" : "") +
-                          " type='text/javascript'>"+ onerror + "</script>");
-                return;
-            } catch (e) {
-                // fall through
-            }
-        }
-
-	var calledBack = false;
-	var callbackOnce = function() {
-	    if (callback && !calledBack) {
-		calledBack=true;
-		callback();
-	    }
-	}
-        var script = doc.createElement("script");
-        if (onerror) {
-            try { script.innerHTML = onerror; } catch(e) {};
-            script.onerror = function () {onerror(); callbackOnce()};
-        }
-	else {
-	    script.onerror = callbackOnce;
-	}
-        if (charset) {
-            script.setAttribute("charset", charset);
-        }
-        script.type = "text/javascript";
-        script.language = "JavaScript";
-        script.src = url;
-	if (callback) 
-	    script.onload = script.onreadystatechange = function() {
-		if (!this.readyState || this.readyState == "loaded" || 
-		    this.readyState == "complete") 
-		    callbackOnce();
-	    }       
-        return getHead(doc).appendChild(script);
     };
 
-    /**
-     * @deprecated Use RequireJS loading mechanisms instead.
-     */
-    var includeJavascriptList = function(doc, urlPrefix, filenames, included, index, callback) {
-        if (!included[index]) { // avoid duplicate callback
-            included[index] = true;
-            if (index<filenames.length) { 
-		var nextCall=function(){
-		    includeJavascriptList(doc, urlPrefix, filenames, 
-					  included, index+1, callback);
-		}
-                SimileAjax.
-		includeJavascriptFile(doc, 
-				      urlPrefix + filenames[index], null, null, 
-				      nextCall);
-	    }
-            else if (callback != null) callback();
-        }
-    };
-    
     /**
      * @deprecated Use RequireJS loading mechanisms instead.
      */
     SimileAjax.includeJavascriptFiles = function(doc, urlPrefix, filenames) {
         SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
         return;
-
-	if (doc.body == null) {
-            for (var i = 0; i < filenames.length; i++) {
-                SimileAjax.includeJavascriptFile(doc, urlPrefix + filenames[i]);
-            }
-            SimileAjax.loadingScriptsCount += filenames.length;
-            SimileAjax.includeJavascriptFile(doc, SimileAjax.urlPrefix + "scripts/signal.js?" + filenames.length);
-        }
-        else {
-            var included = new Array();
-            for (var i = 0; i < filenames.length; i++) 
-		included[i] = false; 
-
-            if (typeof window.SimileAjax_onLoad == "string") 
-		f = eval(window.SimileAjax_onLoad);
-            else if (typeof window.SimileAjax_onLoad == "function") 
-		f = window.SimileAjax_onLoad;
-
-            window.SimileAjax_onLoad = null;
-            includeJavascriptList(doc, urlPrefix, filenames, included, 0, f);
-        }
     };
 
     SimileAjax.includeCssFile = function(doc, url) {
@@ -188,13 +105,13 @@ define([
         link.setAttribute("href", url);
         getHead(doc).appendChild(link);
     };
+
     SimileAjax.includeCssFiles = function(doc, urlPrefix, filenames) {
         for (var i = 0; i < filenames.length; i++) {
             SimileAjax.includeCssFile(doc, urlPrefix + filenames[i]);
         }
     };
     
-    // @@@unnecessary, what to do with it?
     /**
      * Append into urls each string in suffixes after prefixing it with urlPrefix.
      * @param {Array} urls

@@ -1,11 +1,11 @@
-define(["../lib/jquery"], function($) {
+define(function() {
     var SimileAjax = {
         loaded:                 false,
         loadingScriptsCount:    0,
         error:                  null,
         params:                 { bundle: "true" },
         version:                "3.0.0",
-        jQuery:                 $,
+        jQuery:                 null, // use jQuery directly
         urlPrefix:              null
     };
 

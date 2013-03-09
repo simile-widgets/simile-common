@@ -19,6 +19,11 @@ This code contains libraries found in `src/webapp/api/lib/` that are covered by 
  * [JSON2](http://www.json.org/) is covered by [The JSON License](http://www.json.org/license.html).
  * [RequireJS](http://requirejs.org/) and its i18n plugin are covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
 
+This code contains libraries found in `lib/` and `tools/` that support development that are covered by their own licenses.
+
+ * [Jetty](http://jetty.codehaus.org/) is covered by the [Apache 2.0 License](http://jetty.codehaus.org/jetty/license.html)
+ * [JSMin Task](https://code.google.com/p/jsmin-ant-task/) is covered by the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+
 Latest Release - 3.0.0
 ----------------------
 

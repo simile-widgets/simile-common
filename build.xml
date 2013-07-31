@@ -8,7 +8,7 @@
     |
     +-->
 
-<project default="bundle" basedir="." name="SimileAjax">
+<project default="bundle-all" basedir="." name="SimileAjax">
 
   <property name="webapp.dir"  value="src/webapp"/>
   <property name="api.dir"     value="${webapp.dir}/api"/>
@@ -16,28 +16,24 @@
   <property name="scripts.dir" value="${api.dir}/scripts"/>
   <property name="docs.dir"    value="${site.dir}/docs"/>
   <property name="jsdoc.dir"   value="tools/jsdoc"/>
+  <property name="rjs.dir"     value="optimize"/>
+  <property name="build.dir"   value="build"/>
   
-  <target name="tasks">
-    <taskdef name="jsmin"
-        classname="edu.mit.simile.jsminTask.JSMinTask"
-        classpath="tools/jsmin-task/jsminTask.jar"/>
+  <target name="bundle">
+    <exec dir="." executable="node">
+      <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build.js"/>
+    </exec>
   </target>
-      
-  <target name="bundle" depends="tasks">
-    <jsmin output="src/webapp/api/simile-ajax-bundle.js">
-        <fileset dir="src/webapp/api/scripts">
-            <include name="jquery*.js" />
-            <include name="platform.js" />
-        </fileset>
-        <fileset dir="src/webapp/api/scripts">
-            <include name="**/*.js" />
-            <exclude name="signal.js" />
-            <exclude name="jquery*.js" />
-            <exclude name="platform.js" />
-        </fileset>
-    </jsmin>
+
+  <target name="bundle-require">
+    <exec dir="." executable="node">
+      <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build-require.js"/>
+    </exec>
   </target>
   
+  <target name="bundle-all" depends="bundle,bundle-require">
+  </target>
+
   <target name="docs">
     <java jar="${jsdoc.dir}/app/js.jar" fork="true" dir="${jsdoc.dir}">
         <arg value="app/run.js"/>
@@ -46,5 +42,9 @@
         <arg value="-d=../../${docs.dir}"/>
         <arg value="../../src"/>
     </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
   </target>
 </project>

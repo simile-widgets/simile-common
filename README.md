@@ -2,7 +2,7 @@ SimileAjax
 ==========
 
 SimileAjax is a [SIMILE](http://simile-widgets.org/) Javascript library used by [Timeline](https://github.com/zepheira/timeline/) and other frameworks.  It is relatively obsolete and has been written out of [Exhibit](https://github.com/zepheira/exhibit3/) entirely.  You should probably choose jQuery or other similar tools to meet your needs, this primarily exists as a compatibility shim until it can be replaced.
-  
+
 Mailing List and Forum
 ----------------------
 
@@ -18,11 +18,17 @@ This code contains libraries found in `src/webapp/api/lib/` that are covered by 
  * [jQuery](http://jquery.com/) is covered by [The MIT License](http://jquery.org/license/).
  * [JSON2](http://www.json.org/) is covered by [The JSON License](http://www.json.org/license.html).
  * [RequireJS](http://requirejs.org/) and its i18n plugin are covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
+ * [almond](https://github.com/jrburke/almond) is covered by the [modified BSD license](https://github.com/jrburke/almond/blob/master/LICENSE).
 
-This code contains libraries found in `lib/` and `tools/` that support development that are covered by their own licenses.
+This code contains libraries found in `lib/` and `optimize/` that support development that are covered by their own licenses.
 
  * [Jetty](http://jetty.codehaus.org/) is covered by the [Apache 2.0 License](http://jetty.codehaus.org/jetty/license.html)
- * [JSMin Task](https://code.google.com/p/jsmin-ant-task/) is covered by the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+ * [r.js](http://requirejs.org/docs/optimization.html) is covered by the [modified BSD license](https://github.com/jrburke/r.js/blob/master/LICENSE).
+
+Bundling
+--------
+
+You will need `ant` and `node` in order to build the SimileAjax bundles.  Use `ant bundle-all` to build both the RequireJS-dependent and non-RequireJS dependent bundles.  Use the non-RequireJS output, found in `build/simile-ajax-bundle.js`, for compatibility with older code that isn't AMD-aware.  Use the RequireJS output, `build/simile-ajax-require-bundle.js`, for code that is AMD-aware.
 
 Latest Release - 3.0.0
 ----------------------

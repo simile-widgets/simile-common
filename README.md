@@ -40,6 +40,7 @@ Released August 1, 2013.
  * Removed modification of native String class, use StringUtils instead.
  * Removed all files related to loading and original bundling / compression.
  * Added a ?require=(true|false) parameter option to elect whether to assume RequireJS or an AMD-aware library is present.  False implies bundling as there is no way to load separate files well without RequireJS.
+ * Added a ?includeRequire=(true|false) parameter option to load RequireJS or assume someone else has - but checks if `require` is defined and loads it anyways when not found. includeRequire=true&require=false is a nonsense combination.
  * Minor bug fixes.
  * See https://github.com/zepheira/simile-ajax/compare/2.2.3...3.0.0 for all commits.
 

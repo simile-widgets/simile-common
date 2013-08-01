@@ -15,7 +15,8 @@
         "require": "lib/require.js",
         "main": "main",
         "bundle": "simile-ajax-bundle.js",
-        "rbundle": "simile-ajax-require-bundle"
+        "rbundle": "simile-ajax-require-bundle",
+        "namespace": "SimileAjax"
     };
 
     findScript = function(doc, substring) {
@@ -103,7 +104,7 @@
     };
 
     setup = function(config) {
-        var prefix, u, params, defaults, types;
+        var prefix, u, params, defaults, types, loader;
         if (typeof SimileAjax_urlPrefix === "string") {
             prefix = SimileAjax_urlPrefix;
         } else {
@@ -119,46 +120,39 @@
         } else {
             defaults = {
                 "require": false,
+                "includeRequire": false,
                 "bundle": true
             };
             types = {
                 "require": Boolean,
+                "includeRequire": Boolean,
                 "bundle": Boolean
             };
             params = parseURLParameters(u, defaults, types);
-            if (params.require) {
-                if (params.bundle) {
-                    includeScript(
-                        document,
-                        prefix + config.require,
-                        null,
-                        null,
-                        function() {
-                            require.config({
-                                "baseUrl": prefix
-                            });
-                            require([config.rbundle,
-                                     config.main], function(A, SimileAjax) {
-                                window.SimileAjax = SimileAjax;
-                            });
-                        }
-                    );
-                } else {
-                    includeScript(
-                        document,
-                        prefix + config.require,
-                        null,
-                        null,
-                        function() {
-                            require.config({
-                                "baseUrl": prefix
-                            });
-                            require([config.main], function(SimileAjax) {
-                                window.SimileAjax = SimileAjax;
-                            });
-                        }
-                    );
+            if (params.require && !params.includeRequire) {
+                if (typeof require === "undefined") {
+                    params.includeRequire = true;
                 }
+            }
+            loader = function() {
+                require.config({
+                    "baseUrl": prefix
+                });
+                if (params.bundle) {
+                    require([config.rbundle, config.main], function(A, B) {
+                        window[config.namespace] = B;
+                    });
+                } else {
+                    require([config.main], function(A) {
+                        window[config.namespace] = A;
+                    });
+                }
+            };
+            if (params.require && params.includeRequire) {
+                includeScript(document, prefix + config.require, null, null, loader);
+            } else if (params.require && !params.includeRequire) {
+                loader();
+                // !params.require && params.includeRequire - not sensible
             } else {
                 // Always bundle if not using RequireJS; there is no way to
                 // load all the individual files properly without RequireJS.

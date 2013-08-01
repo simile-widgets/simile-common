@@ -8,7 +8,7 @@
     |
     +-->
 
-<project default="bundle-all" basedir="." name="SimileAjax">
+<project default="publish-local" basedir="." name="SimileAjax">
 
   <property name="webapp.dir"  value="src/webapp"/>
   <property name="api.dir"     value="${webapp.dir}/api"/>

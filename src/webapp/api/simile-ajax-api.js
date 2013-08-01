@@ -9,8 +9,14 @@
  */
 
 (function() {
-    var findScript, parseURLParameters, includeScript, setup, name;
-    name = "simile-ajax-api.js";
+    var findScript, parseURLParameters, includeScript, setup, init;
+    init = {
+        "fileName": "simile-ajax-api.js",
+        "require": "lib/require.js",
+        "main": "main",
+        "bundle": "simile-ajax-bundle.js",
+        "rbundle": "simile-ajax-require-bundle"
+    };
 
     findScript = function(doc, substring) {
         var scripts, s, url, i, heads, h, node;
@@ -73,16 +79,19 @@
         return to;
     };
 
-    includeScript = function(doc, url, onerror, charset) {
+    includeScript = function(doc, url, onerror, charset, onload) {
         var head, script;
         onerror = onerror || "";
         script = doc.createElement("script");
+        if (onload) {
+            script.onload = onload;
+        }
         if (onerror) {
             try {
                 script.innerHTML = onerror;
             } catch (e) {
             }
-            script.setAttribute("onerror", onerror);
+            script.onerror = onerror;
         }
         if (charset) {
             script.setAttribute("charset", charset);
@@ -93,23 +102,23 @@
         head.appendChild(script);
     };
 
-    setup = function(fileName) {
+    setup = function(config) {
         var prefix, u, params, defaults, types;
         if (typeof SimileAjax_urlPrefix === "string") {
             prefix = SimileAjax_urlPrefix;
         } else {
-            u = findScript(document, fileName);
+            u = findScript(document, config.fileName);
             if (u !== null) {
-                prefix = u.substr(0, u.indexOf(fileName));
+                prefix = u.substr(0, u.indexOf(config.fileName));
             }
         }
 
         if (typeof prefix === "undefined") {
-            throw new Error("Failed to derive URL prefix for " + fileName);
+            throw new Error("Failed to derive URL prefix for " + config.fileName);
             return;
         } else {
             defaults = {
-                "require": true,
+                "require": false,
                 "bundle": true
             };
             types = {
@@ -119,18 +128,44 @@
             params = parseURLParameters(u, defaults, types);
             if (params.require) {
                 if (params.bundle) {
-                    includeScript(document, prefix + "lib/require.js");
-                    includeScript(document, prefix + "simile-ajax-require-bundle.js");
+                    includeScript(
+                        document,
+                        prefix + config.require,
+                        null,
+                        null,
+                        function() {
+                            require.config({
+                                "baseUrl": prefix
+                            });
+                            require([config.rbundle,
+                                     config.main], function(A, SimileAjax) {
+                                window.SimileAjax = SimileAjax;
+                            });
+                        }
+                    );
                 } else {
-                    includeScript(document, prefix + "lib/require.js");
-                    includeScript(document, prefix + "main.js");
+                    includeScript(
+                        document,
+                        prefix + config.require,
+                        null,
+                        null,
+                        function() {
+                            require.config({
+                                "baseUrl": prefix
+                            });
+                            require([config.main], function(SimileAjax) {
+                                window.SimileAjax = SimileAjax;
+                            });
+                        }
+                    );
                 }
             } else {
-                // Always bundle if not using require.
-                includeScript(document, prefix + "simile-ajax-bundle.js");
+                // Always bundle if not using RequireJS; there is no way to
+                // load all the individual files properly without RequireJS.
+                includeScript(document, prefix + config.bundle);
             }
         }
     };
 
-    setup(name);
+    setup(init);
 }());

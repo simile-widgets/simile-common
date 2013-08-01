@@ -15,9 +15,8 @@ SimileAjax is open source software and is licensed under the modified BSD licens
 
 This code contains libraries found in `src/webapp/api/lib/` that are covered by their own licenses.
 
- * [jQuery](http://jquery.com/) is covered by [The MIT License](http://jquery.org/license/).
  * [JSON2](http://www.json.org/) is covered by [The JSON License](http://www.json.org/license.html).
- * [RequireJS](http://requirejs.org/) and its i18n plugin are covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
+ * [RequireJS](http://requirejs.org/) is covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
  * [almond](https://github.com/jrburke/almond) is covered by the [modified BSD license](https://github.com/jrburke/almond/blob/master/LICENSE).
 
 This code contains libraries found in `lib/` and `optimize/` that support development that are covered by their own licenses.
@@ -33,15 +32,14 @@ You will need `ant` and `node` in order to build the SimileAjax bundles.  Use `a
 Latest Release - 3.0.0
 ----------------------
 
-Released March 8, 2013.
+Released August 1, 2013.
 
  * Forked source to https://github.com/zepheira/simile-ajax/
- * Upgraded to jQuery 1.8.2. 
- * Swtiched from self-contained loading to RequireJS 2.1.2.  Do not use SimileAjax to load files, those methods are now deprecated and will do nothing.
+ * Swtiched from self-contained loading to RequireJS 2.1.2.  Do not use SimileAjax to load scrip files, those methods are now deprecated and will do nothing.
+ * Removed jQuery, it was only included here to use SimileAjax as a namespace.  Use RequireJS to load it into a context instead.
  * Removed modification of native String class, use StringUtils instead.
  * Removed all files related to loading and original bundling / compression.
- * Bundling and compression are not currently available in this release.
- * Parameters cannot be provided through RequireJS as they were before, no parameters will be respected or used in this release.
+ * Added a ?require=(true|false) parameter option to elect whether to assume RequireJS or an AMD-aware library is present.  False implies bundling as there is no way to load separate files well without RequireJS.
  * Minor bug fixes.
  * See https://github.com/zepheira/simile-ajax/compare/2.2.3...3.0.0 for all commits.
 

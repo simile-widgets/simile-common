@@ -1,2 +1,2 @@
-    return require('simile-ajax-api');
+    return require('main');
 }));

@@ -1,6 +1,6 @@
 ({
     "baseUrl": "../src/webapp/api/",
-    "name": "simile-ajax-api",
+    "name": "main",
     "shim": {
         "./lib/json2": {
             "exports": "JSON"

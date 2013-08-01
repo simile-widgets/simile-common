@@ -1,7 +1,7 @@
 ({
     "baseUrl": "../src/webapp/api/",
     "name": "lib/almond",
-    "include": [ "simile-ajax-api" ],
+    "include": [ "main" ],
     "wrap": {
         "startFile": "start.frag",
         "endFile": "end.frag"

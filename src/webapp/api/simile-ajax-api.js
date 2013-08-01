@@ -1,152 +1,136 @@
-/*==================================================
- *  Simile Ajax API
- *==================================================
+/**
+ * This file is for bootstrapping SIMILE projects that were originally
+ * designed to be loaded using the <script src="[name]-api.js"> paradigm.
+ * It is preferable now to instead use AMD-aware loading, for example,
+ * using RequireJS:
+ *  <script src="[name]/lib/require.js" data-main="main"></script>
+ * especially if custom code is being used.  But the old paradigm is
+ * prevalent enough to merit considerations.
  */
 
-/*==================================================
- *  REMEMBER to update the Version!  Now found in scripts/base.js
- *==================================================
- */
+(function() {
+    var findScript, parseURLParameters, includeScript, setup, name;
+    name = "simile-ajax-api.js";
 
-define([
-    "./scripts/base",
-    "./scripts/platform",
-    "./scripts/debug",
-    "./scripts/xmlhttp",
-    "./scripts/dom",
-    "./scripts/bubble",
-    "./scripts/date-time",
-    "./scripts/string",
-    "./scripts/html",
-    "./scripts/set",
-    "./scripts/sorted-array",
-    "./scripts/event-index",
-    "./scripts/units",
-    "./scripts/ajax",
-    "./scripts/history",
-    "./scripts/window-manager"
-], function(SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
-    SimileAjax.Platform = Platform;
-    SimileAjax.Debug = Debug;
-    SimileAjax.XmlHttp = XmlHttp;
-    SimileAjax.DOM = DOM;
-    SimileAjax.Graphics = Graphics;
-    SimileAjax.DateTime = DateTime;
-    SimileAjax.StringUtils = StringUtils;
-    SimileAjax.HTML = HTML;
-    SimileAjax.Set = Set;
-    SimileAjax.SortedArray = SortedArray;
-    SimileAjax.EventIndex = EventIndex;
-    SimileAjax.NativeDateUnit = NativeDateUnit;
-    SimileAjax.ListenerQueue = ListenerQueue;
-    SimileAjax.History = SAHistory;
-    SimileAjax.WindowManager = WindowManager;
-
-    var getHead = function(doc) {
-        return doc.getElementsByTagName("head")[0];
-    };
-    
-    SimileAjax.findScript = function(doc, substring) {
-	var scripts=doc.documentElement.getElementsByTagName("script");
-	for (s=0; s<scripts.length;s++) {
-            var url = scripts[s].src;
-            var i = url.indexOf(substring);
+    findScript = function(doc, substring) {
+        var scripts, s, url, i, heads, h, node;
+	    scripts = doc.documentElement.getElementsByTagName("script");
+	    for (s = 0; s < scripts.length; s++) {
+            url = scripts[s].src;
+            i = url.indexOf(substring);
             if (i >= 0) {
                 return url;
             }
-	}
-
-        var heads = doc.documentElement.getElementsByTagName("head");
-        for (var h = 0; h < heads.length; h++) {
-            var node = heads[h].firstChild;
-            while (node != null) {
-                if (node.nodeType == 1 && node.tagName.toLowerCase() == "script") {
-                    var url = node.src;
-                    var i = url.indexOf(substring);
-                    if (i >= 0) {
-                        return url;
-                    }
-                }
-                node = node.nextSibling;
-            }
-        }
+	    }
         return null;
     };
 
-    /**
-     * @deprecated Use RequireJS loading mechanisms instead.
-     */
-    SimileAjax.includeJavascriptFile = function(doc, url, onerror, charset, callback) {
-        SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
-        return;
-    };
-
-    /**
-     * @deprecated Use RequireJS loading mechanisms instead.
-     */
-    SimileAjax.includeJavascriptFiles = function(doc, urlPrefix, filenames) {
-        SimileAjax.Debug.warn("Loading scripts is no longer a feature of SimileAjax. Use RequireJS instead.");
-        return;
-    };
-
-    SimileAjax.includeCssFile = function(doc, url) {
-        if (doc.body == null) {
-            try {
-                doc.write("<link rel='stylesheet' href='" + url + "' type='text/css'/>");
-                return;
-            } catch (e) {
-                // fall through
-            }
-        }
+    parseURLParameters = function(url, to, types) {
+        var q, params, param, parsed, decode, i, eq, name, old, replacement, type, data;
+        to = to || {};
+        types = types || {};
         
-        var link = doc.createElement("link");
-        link.setAttribute("rel", "stylesheet");
-        link.setAttribute("type", "text/css");
-        link.setAttribute("href", url);
-        getHead(doc).appendChild(link);
-    };
-
-    SimileAjax.includeCssFiles = function(doc, urlPrefix, filenames) {
-        for (var i = 0; i < filenames.length; i++) {
-            SimileAjax.includeCssFile(doc, urlPrefix + filenames[i]);
+        if (typeof url == "undefined") {
+            url = location.href;
         }
-    };
-    
-    /**
-     * Append into urls each string in suffixes after prefixing it with urlPrefix.
-     * @param {Array} urls
-     * @param {String} urlPrefix
-     * @param {Array} suffixes
-     */
-    SimileAjax.prefixURLs = function(urls, urlPrefix, suffixes) {
-        for (var i = 0; i < suffixes.length; i++) {
-            urls.push(urlPrefix + suffixes[i]);
+        q = url.indexOf("?");
+        if (q < 0) {
+            return to;
         }
-    };
-
-    SimileAjax.load = function() {
-           var cssFiles = [
-                "graphics.css"
-            ];
-
-            if (typeof SimileAjax_urlPrefix == "string") {
-                SimileAjax.urlPrefix = SimileAjax_urlPrefix;
-            } else {
-                var url = SimileAjax.findScript(document, "simile-ajax-api.js");
-                if (url == null) {
-                    SimileAjax.error = new Error("Failed to derive URL prefix for Simile Ajax API code files");
-                    return;
-                }
-                SimileAjax.urlPrefix = url.substr(0, url.indexOf("simile-ajax-api.js"));
-            }
-
-            SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
+        url = (url+"#").slice(q+1, url.indexOf("#")); // toss the URL fragment
+        
+        params = url.split("&");
+        parsed = {};
+        decode = window.decodeURIComponent || unescape;
+        for (i = 0; i < params.length; i++) {
+            param = params[i];
+            eq = param.indexOf("=");
+            name = decode(param.slice(0, eq));
+            old = parsed[name];
+            replacement = decode(param.slice(eq + 1));
             
-            SimileAjax.loaded = true;
+            if (typeof old === "undefined") {
+                old = [];
+            } else if (!(old instanceof Array)) {
+                old = [old];
+            }
+            parsed[name] = old.concat(replacement);
+        }
 
-        SimileAjax.History.initialize();
-        SimileAjax.WindowManager.initialize();
+        for (i in parsed) {
+            if (!parsed.hasOwnProperty(i)) continue;
+            type = types[i] || String;
+            data = parsed[i];
+            if (!(data instanceof Array)) {
+                data = [data];
+            }
+            if (type === Boolean && data[0] === "false") {
+                to[i] = false; // because Boolean("false") === true
+            } else {
+                to[i] = type.apply(this, data);
+            }
+        }
+        return to;
     };
 
-    return SimileAjax;
-});
+    includeScript = function(doc, url, onerror, charset) {
+        var head, script;
+        onerror = onerror || "";
+        script = doc.createElement("script");
+        if (onerror) {
+            try {
+                script.innerHTML = onerror;
+            } catch (e) {
+            }
+            script.setAttribute("onerror", onerror);
+        }
+        if (charset) {
+            script.setAttribute("charset", charset);
+        }
+        script.setAttribute("type", "text/javascript");
+        script.setAttribute("src", url);
+        head = doc.documentElement.getElementsByTagName("head")[0];
+        head.appendChild(script);
+    };
+
+    setup = function(fileName) {
+        var prefix, u, params, defaults, types;
+        if (typeof SimileAjax_urlPrefix === "string") {
+            prefix = SimileAjax_urlPrefix;
+        } else {
+            u = findScript(document, fileName);
+            if (u !== null) {
+                prefix = u.substr(0, u.indexOf(fileName));
+            }
+        }
+
+        if (typeof prefix === "undefined") {
+            throw new Error("Failed to derive URL prefix for " + fileName);
+            return;
+        } else {
+            defaults = {
+                "require": true,
+                "bundle": true
+            };
+            types = {
+                "require": Boolean,
+                "bundle": Boolean
+            };
+            params = parseURLParameters(u, defaults, types);
+            if (params.require) {
+                if (params.bundle) {
+                    includeScript(document, prefix + "lib/require.js");
+                    includeScript(document, prefix + "simile-ajax-require-bundle.js");
+                } else {
+                    includeScript(document, prefix + "lib/require.js");
+                    includeScript(document, prefix + "main.js");
+                }
+            } else {
+                // Always bundle if not using require.
+                includeScript(document, prefix + "simile-ajax-bundle.js");
+            }
+        }
+    };
+
+    setup(name);
+}());

@@ -35,12 +35,11 @@ Latest Release - 3.0.0
 Released August 1, 2013.
 
  * Forked source to https://github.com/zepheira/simile-ajax/
- * Swtiched from self-contained loading to RequireJS 2.1.2.  Do not use SimileAjax to load scrip files, those methods are now deprecated and will do nothing.
+ * Swtiched from self-contained loading to RequireJS 2.1.2.  Do not use SimileAjax to load script files, those methods are now deprecated and will do nothing.
  * Removed jQuery, it was only included here to use SimileAjax as a namespace.  Use RequireJS to load it into a context instead.
  * Removed modification of native String class, use StringUtils instead.
  * Removed all files related to loading and original bundling / compression.
- * Added a ?require=(true|false) parameter option to elect whether to assume RequireJS or an AMD-aware library is present.  False implies bundling as there is no way to load separate files well without RequireJS.
- * Added a ?includeRequire=(true|false) parameter option to load RequireJS or assume someone else has - but checks if `require` is defined and loads it anyways when not found. includeRequire=true&require=false is a nonsense combination.
+ * Removed parameter `bundle` when using the old, non-RequireJS style of calling `simlie-ajax-api.js`; bundling is forced.  Use RequireJS if separate files are needed.
  * Minor bug fixes.
  * See https://github.com/zepheira/simile-ajax/compare/2.2.3...3.0.0 for all commits.
 

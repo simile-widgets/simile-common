@@ -30,13 +30,20 @@
       <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build-require.js"/>
     </exec>
   </target>
+
+  <target name="bundle-css">
+    <exec dir="." executable="node">
+      <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build-css.js"/>
+    </exec>
+  </target>
   
-  <target name="bundle-all" depends="bundle,bundle-require">
+  <target name="bundle-all" depends="bundle,bundle-require,bundle-css">
   </target>
 
   <target name="publish-local" depends="bundle-all">
     <copy file="${build.dir}/simile-ajax-bundle.js" todir="${api.dir}"/>
     <copy file="${build.dir}/simile-ajax-require-bundle.js" todir="${api.dir}"/>
+    <copy file="${build.dir}/simile-ajax-bundle.css" todir="${api.dir}/styles"/>
   </target>
 
   <target name="docs">
@@ -53,5 +60,6 @@
     <delete dir="${build.dir}"/>
     <delete file="${api.dir}/simile-ajax-bundle.js"/>
     <delete file="${api.dir}/simile-ajax-require-bundle.js"/>
+    <delete file="${api.dir}/styles/simile-ajax-bundle.css"/>
   </target>
 </project>

@@ -126,7 +126,7 @@ define([
 
     SimileAjax.load = function() {
         var cssFiles = [
-            "graphics.css"
+            "simile-ajax-bundle.css"
         ];
 
         if (typeof SimileAjax_urlPrefix == "string") {

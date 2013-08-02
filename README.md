@@ -3,6 +3,31 @@ SimileAjax
 
 SimileAjax is a [SIMILE](http://simile-widgets.org/) Javascript library used by [Timeline](https://github.com/zepheira/timeline/) and other frameworks.  It is relatively obsolete and has been written out of [Exhibit](https://github.com/zepheira/exhibit3/) entirely.  You should probably choose jQuery or other similar tools to meet your needs, this primarily exists as a compatibility shim until it can be replaced.
 
+Usage
+-----
+
+SimileAjax now comes in two flavors.  You can continue to call `simile-ajax-api.js` (a built file) which is a self-contained bundle that should be backwards compatible with any prior usage of the library.
+
+```html
+<script src="ajax/api/simile-ajax-api.js"></script>
+```
+
+Or you can use your own RequireJS configuration to include SimileAjax in your application.  The RequireJS-aware bundled file is different from the older convention A sample configuration:
+
+```javascript
+require.config({
+    // ... your other configuration material ...
+    paths: {
+        "simile-ajax": "ajax/api/simile-ajax-bundle"
+    }
+});
+require(["simile-ajax"], function(SimileAjax) {
+    if (SimileAjax.loaded) {
+        console.log("SimileAjax is working.");
+    }
+});
+```
+
 Mailing List and Forum
 ----------------------
 
@@ -15,8 +40,8 @@ SimileAjax is open source software and is licensed under the modified BSD licens
 
 This code contains libraries found in `src/webapp/api/lib/` that are covered by their own licenses.
 
- * [JSON2](http://www.json.org/) is covered by [The JSON License](http://www.json.org/license.html).
  * [RequireJS](http://requirejs.org/) is covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
+ * The RequireJS [domReady plugin](http://requirejs.org/docs/api.html#pageload) is covered by the [modified BSD license](https://github.com/requirejs/domReady/blob/master/LICENSE).
  * [almond](https://github.com/jrburke/almond) is covered by the [modified BSD license](https://github.com/jrburke/almond/blob/master/LICENSE).
 
 This code contains libraries found in `lib/` and `optimize/` that support development that are covered by their own licenses.
@@ -27,7 +52,7 @@ This code contains libraries found in `lib/` and `optimize/` that support develo
 Bundling
 --------
 
-You will need `ant` and `node` in order to build the SimileAjax bundles.  Use `ant bundle-all` to build both the RequireJS-dependent and non-RequireJS dependent bundles.  Use the non-RequireJS output, found in `build/simile-ajax-bundle.js`, for compatibility with older code that isn't AMD-aware.  Use the RequireJS output, `build/simile-ajax-require-bundle.js`, for code that is AMD-aware.
+You will need `ant` and `node` in order to build the SimileAjax bundles.  Use `ant bundle-all` to build both the RequireJS-dependent and non-RequireJS dependent bundles (and the CSS bundle).  Use the non-RequireJS output, found in `build/simile-ajax-api.js`, for compatibility with older code that isn't AMD-aware.  Use the RequireJS output, `build/simile-ajax-bundle.js`, for code that is AMD-aware.
 
 Latest Release - 3.0.0
 ----------------------
@@ -39,7 +64,7 @@ Released August 1, 2013.
  * Removed jQuery, it was only included here to use SimileAjax as a namespace.  Use RequireJS to load it into a context instead.
  * Removed modification of native String class, use StringUtils instead.
  * Removed all files related to loading and original bundling / compression.
- * Removed parameter `bundle` when using the old, non-RequireJS style of calling `simlie-ajax-api.js`; bundling is forced.  Use RequireJS if separate files are needed.
+ * Demoted `bundle` parameter to only control CSS, only useful in development.
  * Minor bug fixes.
  * See https://github.com/zepheira/simile-ajax/compare/2.2.3...3.0.0 for all commits.
 

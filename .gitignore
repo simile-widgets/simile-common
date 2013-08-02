@@ -1,4 +1,4 @@
 build/
+src/webapp/api/simile-ajax-api.js
 src/webapp/api/simile-ajax-bundle.js
-src/webapp/api/simile-ajax-require-bundle.js
 src/webapp/api/styles/simile-ajax-bundle.css

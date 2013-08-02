@@ -182,9 +182,6 @@ define([
             "main.css"
         ];
         var bundledCssFile = "simile-ajax-bundle.css";
-        var params = {
-            "bundle": 
-        };
 
         if (typeof SimileAjax_urlPrefix == "string") {
             SimileAjax.urlPrefix = SimileAjax_urlPrefix;

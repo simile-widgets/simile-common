@@ -9,6 +9,7 @@
  */
 
 define([
+    "./lib/domReady",
     "./scripts/base",
     "./scripts/platform",
     "./scripts/debug",
@@ -25,7 +26,7 @@ define([
     "./scripts/ajax",
     "./scripts/history",
     "./scripts/window-manager"
-], function(SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
+], function(domReady, SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
     SimileAjax.Platform = Platform;
     SimileAjax.Debug = Debug;
     SimileAjax.XmlHttp = XmlHttp;
@@ -205,7 +206,7 @@ define([
         }
 
         if (params.bundle) {
-            SimileAjax.includeCssFile(document, SimileAjax.urlPrefix + "styles/" + bundleCssFile);
+            SimileAjax.includeCssFile(document, SimileAjax.urlPrefix + "styles/" + bundledCssFile);
         } else {
             SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
         }
@@ -215,7 +216,7 @@ define([
         SimileAjax.History.initialize();
         SimileAjax.WindowManager.initialize();
     };
+    domReady(SimileAjax.load);
 
-    SimileAjax.load();
     return SimileAjax;
 });

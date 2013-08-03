@@ -48,29 +48,15 @@ define([
     };
     
     SimileAjax.findScript = function(doc, substring) {
-	var scripts=doc.documentElement.getElementsByTagName("script");
-	for (s=0; s<scripts.length;s++) {
-            var url = scripts[s].src;
-            var i = url.indexOf(substring);
+        var scripts, s, url, i;
+	    scripts = doc.documentElement.getElementsByTagName("script");
+	    for (s = 0; s < scripts.length; s++) {
+            url = scripts[s].src;
+            i = url.indexOf(substring);
             if (i >= 0) {
                 return url;
             }
-	}
-
-        var heads = doc.documentElement.getElementsByTagName("head");
-        for (var h = 0; h < heads.length; h++) {
-            var node = heads[h].firstChild;
-            while (node != null) {
-                if (node.nodeType == 1 && node.tagName.toLowerCase() == "script") {
-                    var url = node.src;
-                    var i = url.indexOf(substring);
-                    if (i >= 0) {
-                        return url;
-                    }
-                }
-                node = node.nextSibling;
-            }
-        }
+	    }
         return null;
     };
 
@@ -178,12 +164,18 @@ define([
         }
     };
 
-    SimileAjax.load = function() {
-        var cssFiles = [
-            "main.css"
-        ];
-        var bundledCssFile = "simile-ajax-bundle.css";
+    SimileAjax.loadCSS = function(bundle) {
+        var cssFiles = ["main.css"], bundledCssFile = "simile-ajax-bundle.css";
+        bundle = bundle || true;
 
+        if (bundle) {
+            SimileAjax.includeCssFile(document, SimileAjax.urlPrefix + "styles/" + bundledCssFile);
+        } else {
+            SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
+        }
+    };
+
+    SimileAjax.load = function() {
         if (typeof SimileAjax_urlPrefix == "string") {
             SimileAjax.urlPrefix = SimileAjax_urlPrefix;
         } else {
@@ -206,12 +198,7 @@ define([
             params = SimileAjax.parseURLParameters(url, SimileAjax.params, SimileAjax.paramTypes);
         }
 
-        if (params.bundle) {
-            SimileAjax.includeCssFile(document, SimileAjax.urlPrefix + "styles/" + bundledCssFile);
-        } else {
-            SimileAjax.includeCssFiles(document, SimileAjax.urlPrefix + "styles/", cssFiles);
-        }
-        
+        SimileAjax.loadCSS();
         SimileAjax.loaded = true;
 
         SimileAjax.History.initialize();

@@ -169,3 +169,29 @@ div.simileAjax-bubble-close {
 .simileAjax-bubble-close-pngTranslucent {
     background: url(../images/close-button.png) no-repeat;
 }
+div.simileAjax-messageBubble-top {
+    height: 33px;
+    padding-left: 44px;
+    background: url(../images/message-top-left.png) top left no-repeat;
+}
+div.simileAjax-messageBubble-top-right {
+    height: 33px;
+    background: url(../images/message-top-right.png) top right no-repeat;
+}
+div.simileAjax-messageBubble-middle {
+    padding-left: 44px;
+    background: url(../images/message-left.png) top left repeat-y;
+}
+div.simileAjax-messageBubble-middle-right {
+    padding-right: 44px;
+    background: url(../images/message-right.png) top right repeat-y;
+}
+div.simileAjax-messageBubble-bottom {
+    height: 55px;
+    padding-left: 44px;
+    background: url(../images/message-bottom-left.png) bottom left no-repeat;
+}
+div.simileAjax-messageBubble-bottom-right {
+    height: 55px;
+    background: url(../images/message-bottom-right.png) bottom right no-repeat;
+}

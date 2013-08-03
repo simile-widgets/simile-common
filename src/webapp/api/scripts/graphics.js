@@ -149,40 +149,33 @@ Graphics.getWindowDimensions = function() {
  */
 Graphics.createMessageBubble = function(doc) {
     var containerDiv = doc.createElement("div");
+    var prefix = "simileAjax-messageBubble";
     if (Graphics.pngIsTranslucent) {
         var topDiv = doc.createElement("div");
-        topDiv.style.height = "33px";
-        topDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-top-left.png) top left no-repeat";
-        topDiv.style.paddingLeft = "44px";
+        topDiv.className = prefix + "-top";
         containerDiv.appendChild(topDiv);
         
         var topRightDiv = doc.createElement("div");
-        topRightDiv.style.height = "33px";
-        topRightDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-top-right.png) top right no-repeat";
+        topRightDiv.className = prefix + "-top-right";
         topDiv.appendChild(topRightDiv);
         
         var middleDiv = doc.createElement("div");
-        middleDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-left.png) top left repeat-y";
-        middleDiv.style.paddingLeft = "44px";
+        middleDiv.className = prefix + "-middle";
         containerDiv.appendChild(middleDiv);
         
         var middleRightDiv = doc.createElement("div");
-        middleRightDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-right.png) top right repeat-y";
-        middleRightDiv.style.paddingRight = "44px";
+        middleRightDiv.className = prefix + "-middle-right";
         middleDiv.appendChild(middleRightDiv);
         
         var contentDiv = doc.createElement("div");
         middleRightDiv.appendChild(contentDiv);
         
         var bottomDiv = doc.createElement("div");
-        bottomDiv.style.height = "55px";
-        bottomDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-bottom-left.png) bottom left no-repeat";
-        bottomDiv.style.paddingLeft = "44px";
+        bottomDiv.className = prefix + "-bottom";
         containerDiv.appendChild(bottomDiv);
         
         var bottomRightDiv = doc.createElement("div");
-        bottomRightDiv.style.height = "55px";
-        bottomRightDiv.style.background = "url(" + SimileAjax.urlPrefix + "images/message-bottom-right.png) bottom right no-repeat";
+        bottomRightDiv.className = prefix + "-bottom-right";
         bottomDiv.appendChild(bottomRightDiv);
     } else {
         containerDiv.style.border = "2px solid #7777AA";

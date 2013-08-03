@@ -187,10 +187,11 @@ define([
         if (typeof SimileAjax_urlPrefix == "string") {
             SimileAjax.urlPrefix = SimileAjax_urlPrefix;
         } else {
+            var url = null;
             var targets = ["simile-ajax-api.js", "simile-ajax-bundle.js"];
             for (var i = 0; i < targets.length; i++) {
                 var target = targets[i];
-                var url = SimileAjax.findScript(document, target);
+                url = SimileAjax.findScript(document, target);
                 if (url != null) {
                     SimileAjax.urlPrefix = url.substr(0, url.indexOf(target));
                     break;

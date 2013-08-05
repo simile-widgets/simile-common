@@ -9,6 +9,7 @@
  */
 
 define([
+    "module",
     "./lib/domReady",
     "./scripts/base",
     "./scripts/platform",
@@ -26,7 +27,7 @@ define([
     "./scripts/ajax",
     "./scripts/history",
     "./scripts/window-manager"
-], function(domReady, SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
+], function(module, domReady, SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
     SimileAjax.Platform = Platform;
     SimileAjax.Debug = Debug;
     SimileAjax.XmlHttp = XmlHttp;
@@ -176,8 +177,13 @@ define([
     };
 
     SimileAjax.load = function() {
+        var params;
+        var conf = module.config();
         if (typeof SimileAjax_urlPrefix == "string") {
             SimileAjax.urlPrefix = SimileAjax_urlPrefix;
+        } else if (conf.hasOwnProperty("prefix")) {
+            SimileAjax.urlPrefix = conf.prefix;
+            params = conf;
         } else {
             var url = null;
             var targets = ["simile-ajax-api.js", "simile-ajax-bundle.js"];
@@ -198,7 +204,7 @@ define([
             params = SimileAjax.parseURLParameters(url, SimileAjax.params, SimileAjax.paramTypes);
         }
 
-        SimileAjax.loadCSS();
+        SimileAjax.loadCSS(params.bundle);
         SimileAjax.loaded = true;
 
         SimileAjax.History.initialize();

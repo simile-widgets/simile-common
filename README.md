@@ -12,13 +12,19 @@ SimileAjax now comes in two flavors.  You can continue to call `simile-ajax-api.
 <script src="ajax/api/simile-ajax-api.js"></script>
 ```
 
-Or you can use your own RequireJS configuration to include SimileAjax in your application.  The RequireJS-aware bundled file is different from the older convention A sample configuration:
+Or you can use your own RequireJS configuration to include SimileAjax in your application.  The RequireJS-aware bundled file is quite different from the older convention and should take advantage of the RequireJS config system for setting things embedded URL parameters or global script variables used to provide.  A sample configuration:
 
 ```javascript
 require.config({
     // ... your other configuration material ...
     paths: {
         "simile-ajax": "ajax/api/simile-ajax-bundle"
+    },
+    config: {
+        simile-ajax: {
+            bundle: true, // default
+            prefix: "ajax/api"
+        }
     }
 });
 require(["simile-ajax"], function(SimileAjax) {
@@ -57,7 +63,7 @@ You will need `ant` and `node` in order to build the SimileAjax bundles.  Use `a
 Latest Release - 3.0.0
 ----------------------
 
-Released August 1, 2013.
+Released August, 2013.
 
  * Forked source to https://github.com/zepheira/simile-ajax/
  * Swtiched from self-contained loading to RequireJS 2.1.2.  Do not use SimileAjax to load script files, those methods are now deprecated and will do nothing.
@@ -65,6 +71,7 @@ Released August 1, 2013.
  * Removed modification of native String class, use StringUtils instead.
  * Removed all files related to loading and original bundling / compression.
  * Demoted `bundle` parameter to only control CSS, only useful in development.
+ * Added handling for RequireJS config to ultimately supersede parameters and global variables.
  * Minor bug fixes.
  * See https://github.com/zepheira/simile-ajax/compare/2.2.3...3.0.0 for all commits.
 

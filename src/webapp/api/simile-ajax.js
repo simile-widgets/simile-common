@@ -165,6 +165,27 @@ define([
         }
     };
 
+    /**
+     * A call to set the prefix and load CSS.
+     * @param {String} prefix
+     * @returns {Boolean}
+     */
+    SimileAjax.setPrefix = function(prefix) {
+        if (SimileAjax.urlPrefix === null && prefix !== null) {
+            if (prefix.substr(-1) !== "/") {
+                prefix += "/";
+            }
+            SimileAjax.urlPrefix = prefix;
+            SimileAjax.loadCSS(SimileAjax.params.bundle);
+            return true;
+        };
+        return false;
+    };
+
+    /**
+     * Private call to load CSS.
+     * @prefix {Boolean} bundle Whether to load bundled CSS or individual.
+     */
     SimileAjax.loadCSS = function(bundle) {
         var cssFiles = ["main.css"], bundledCssFile = "simile-ajax-bundle.css";
         bundle = bundle || true;
@@ -177,12 +198,13 @@ define([
     };
 
     SimileAjax.load = function() {
-        var params;
         var conf = module.config();
+        var params = null;
+        var prefix = null;
         if (typeof SimileAjax_urlPrefix == "string") {
-            SimileAjax.urlPrefix = SimileAjax_urlPrefix;
+            prefix = SimileAjax_urlPrefix;
         } else if (conf.hasOwnProperty("prefix")) {
-            SimileAjax.urlPrefix = conf.prefix;
+            prefix = conf.prefix;
             params = conf;
         } else {
             var url = null;
@@ -191,7 +213,7 @@ define([
                 var target = targets[i];
                 url = SimileAjax.findScript(document, target);
                 if (url != null) {
-                    SimileAjax.urlPrefix = url.substr(0, url.indexOf(target));
+                    prefix = url.substr(0, url.indexOf(target));
                     break;
                 }
             }
@@ -202,14 +224,16 @@ define([
             }
 
             params = SimileAjax.parseURLParameters(url, SimileAjax.params, SimileAjax.paramTypes);
+            SimileAjax.params = params;
         }
 
-        SimileAjax.loadCSS(params.bundle);
+        SimileAjax.setPrefix(prefix);
         SimileAjax.loaded = true;
 
         SimileAjax.History.initialize();
         SimileAjax.WindowManager.initialize();
     };
+
     domReady(SimileAjax.load);
 
     return SimileAjax;

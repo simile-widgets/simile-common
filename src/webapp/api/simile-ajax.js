@@ -176,6 +176,7 @@ define([
                 prefix += "/";
             }
             SimileAjax.urlPrefix = prefix;
+            SimileAjax.params.prefix = prefix;
             SimileAjax.loadCSS(SimileAjax.params.bundle);
             return true;
         };
@@ -198,6 +199,12 @@ define([
     };
 
     SimileAjax.load = function() {
+        if (SimileAjax.loaded) {
+            return;
+        } else {
+            SimileAjax.loaded = true;
+        }
+
         var conf = module.config();
         var params = null;
         var prefix = null;
@@ -228,7 +235,6 @@ define([
         }
 
         SimileAjax.setPrefix(prefix);
-        SimileAjax.loaded = true;
 
         SimileAjax.History.initialize();
         SimileAjax.WindowManager.initialize();

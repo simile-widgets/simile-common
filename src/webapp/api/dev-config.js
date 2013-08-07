@@ -18,6 +18,7 @@
 
 requirejs.config({
     "baseUrl": "/ajax/api/",
+    "urlArgs": "bust=" + (new Date()).getTime(),
     "config": {
         "simile-ajax": {
             "bundle": false,

@@ -13,7 +13,7 @@ define([
     "./dom",
     "./debug",
     "./graphics",
-    "./base"
+    "./simile-ajax-base"
 ], function(DOM, Debug, Graphics, SimileAjax) {
 var WindowManager = {
     _initialized:       false,

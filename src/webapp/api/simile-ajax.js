@@ -11,7 +11,7 @@
 define([
     "module",
     "./lib/domReady",
-    "./scripts/base",
+    "./scripts/simile-ajax-base",
     "./scripts/platform",
     "./scripts/debug",
     "./scripts/xmlhttp",

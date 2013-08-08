@@ -4,7 +4,7 @@
  */
 
 define([
-    "./base",
+    "./simile-ajax-base",
     "./platform"
 ], function(SimileAjax, Platform) {
 var Graphics = new Object();

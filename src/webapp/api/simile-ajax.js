@@ -10,7 +10,6 @@
 
 define([
     "module",
-    "./lib/domReady",
     "./scripts/simile-ajax-base",
     "./scripts/platform",
     "./scripts/debug",
@@ -27,7 +26,7 @@ define([
     "./scripts/ajax",
     "./scripts/history",
     "./scripts/window-manager"
-], function(module, domReady, SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
+], function(module, SimileAjax, Platform, Debug, XmlHttp, DOM, Graphics, DateTime, StringUtils, HTML, Set, SortedArray, EventIndex, NativeDateUnit, ListenerQueue, SAHistory, WindowManager) { 
     SimileAjax.Platform = Platform;
     SimileAjax.Debug = Debug;
     SimileAjax.XmlHttp = XmlHttp;
@@ -198,49 +197,68 @@ define([
         }
     };
 
-    SimileAjax.load = function() {
-        if (SimileAjax.loaded) {
-            return;
-        } else {
-            SimileAjax.loaded = true;
-        }
-
-        var conf = module.config();
-        var params = null;
-        var prefix = null;
+    /**
+     * Deal with legacy methods of passing configuration to SimileAjax.
+     */
+    SimileAjax.loadLegacy = function() {
+        var prefix, url, targets, target, i;
+ 
+        prefix = null;
         if (typeof SimileAjax_urlPrefix == "string") {
             prefix = SimileAjax_urlPrefix;
-        } else if (conf.hasOwnProperty("prefix")) {
-            prefix = conf.prefix;
-            params = conf;
+            SimileAjax.setPrefix(prefix);
         } else {
-            var url = null;
-            var targets = ["simile-ajax-api.js", "simile-ajax-bundle.js"];
-            for (var i = 0; i < targets.length; i++) {
-                var target = targets[i];
+            url = null;
+            targets = ["simile-ajax-api.js", "simile-ajax-bundle.js"];
+            for (i = 0; i < targets.length; i++) {
+                target = targets[i];
                 url = SimileAjax.findScript(document, target);
                 if (url != null) {
                     prefix = url.substr(0, url.indexOf(target));
                     break;
                 }
             }
-
-            if (url == null) {
-                SimileAjax.error = new Error("Failed to derive URL prefix for Simile Ajax API code files");
-                return;
-            }
-
-            params = SimileAjax.parseURLParameters(url, SimileAjax.params, SimileAjax.paramTypes);
-            SimileAjax.params = params;
+            
+            if (url === null) {
+                SimileAjax.error = new Error("Failed to derive URL prefix for SimileAjax");
+            } else {
+                SimileAjax.setPrefix(prefix);
+                SimileAjax.params = SimileAjax.parseURLParameters(url, SimileAjax.params, SimileAjax.paramTypes);
+            } 
         }
-
-        SimileAjax.setPrefix(prefix);
-
+ 
+        SimileAjax.Graphics = Graphics.initialize(Graphics);
         SimileAjax.History.initialize();
         SimileAjax.WindowManager.initialize();
     };
 
-    domReady(SimileAjax.load);
+    /**
+     * Load based on RequireJS configuration.
+     */
+    SimileAjax.loadRequire = function() {
+        var conf;
+
+        conf = module.config();
+        SimileAjax.params = conf;
+        SimileAjax.setPrefix(SimileAjax.params.prefix);
+
+        SimileAjax.Graphics = Graphics.initialize(Graphics);
+        SimileAjax.History.initialize();
+        SimileAjax.WindowManager.initialize();
+    };
+
+    SimileAjax.load = function() {
+        if (SimileAjax.loaded) {
+            return;
+        } else {
+            SimileAjax.loaded = true;
+            if (module.config().hasOwnProperty("prefix")) {
+                SimileAjax.loadRequire();
+            } else {
+                SimileAjax.loadLegacy();
+            }
+        }
+    };
 
     return SimileAjax;
 });

@@ -7,18 +7,11 @@ define([
     "./simile-ajax-base",
     "./platform"
 ], function(SimileAjax, Platform) {
-var Graphics = new Object();
-
-/**
- * A boolean value indicating whether PNG translucency is supported on the
- * user's browser or not.
- *
- * @type Boolean
- */
-Graphics.pngIsTranslucent = (!Platform.browser.isIE) || (Platform.browser.majorVersion > 6);
-if (!Graphics.pngIsTranslucent) {
-    includeCssFile(document, SimileAjax.urlPrefix + "styles/graphics-ie6.css");
-}
+    var Graphics = {
+        "pngIsTranslucent": undefined,
+        "createTranslucentImage": undefined,
+        "createTranslucentImageHTML": undefined
+    };
 
 /*==================================================
  *  Opacity, translucency
@@ -41,20 +34,6 @@ Graphics._createTranslucentImage2 = function(url, verticalAlign) {
     return elmt;
 };
 
-/**
- * Creates a DOM element for an <code>img</code> tag using the URL given. This
- * is a convenience method that automatically includes the necessary CSS to
- * allow for translucency, even on IE.
- * 
- * @function
- * @param {String} url the URL to the image
- * @param {String} verticalAlign the CSS value for the image's vertical-align
- * @return {Element} a DOM element containing the <code>img</code> tag
- */
-Graphics.createTranslucentImage = Graphics.pngIsTranslucent ?
-    Graphics._createTranslucentImage1 :
-    Graphics._createTranslucentImage2;
-
 Graphics._createTranslucentImageHTML1 = function(url, verticalAlign) {
     return "<img src=\"" + url + "\"" +
         (verticalAlign != null ? " style=\"vertical-align: " + verticalAlign + ";\"" : "") +
@@ -70,18 +49,54 @@ Graphics._createTranslucentImageHTML2 = function(url, verticalAlign) {
 };
 
 /**
- * Creates an HTML string for an <code>img</code> tag using the URL given.
- * This is a convenience method that automatically includes the necessary CSS
- * to allow for translucency, even on IE.
- * 
- * @function
- * @param {String} url the URL to the image
- * @param {String} verticalAlign the CSS value for the image's vertical-align
- * @return {String} a string containing the <code>img</code> tag
+ * Consolidate graphics constant setting into a function dependent on
+ * SimileAjax loading.
+ * @param {Object} g Object to modify functions for.
  */
-Graphics.createTranslucentImageHTML = Graphics.pngIsTranslucent ?
-    Graphics._createTranslucentImageHTML1 :
-    Graphics._createTranslucentImageHTML2;
+Graphics.initialize = function(g) {
+    /**
+     * A boolean value indicating whether PNG translucency is supported on the
+     * user's browser or not.
+     *
+     * @type Boolean
+     */
+    g.pngIsTranslucent = (!Platform.browser.isIE) || (Platform.browser.majorVersion > 6);
+    if (!g.pngIsTranslucent) {
+        includeCssFile(document, SimileAjax.urlPrefix + "styles/graphics-ie6.css");
+    }
+
+    /**
+     * Creates a DOM element for an <code>img</code> tag using the URL given.
+     * This is a convenience method that automatically includes the necessary
+     * CSS to allow for translucency, even on IE.
+     * 
+     * @function
+     * @param {String} url the URL to the image
+     * @param {String} verticalAlign the CSS value for the image's
+     *     vertical-align
+     * @return {Element} a DOM element containing the <code>img</code> tag
+     */
+    g.createTranslucentImage = g.pngIsTranslucent ?
+        g._createTranslucentImage1 :
+        g._createTranslucentImage2;
+    
+    /**
+     * Creates an HTML string for an <code>img</code> tag using the URL given.
+     * This is a convenience method that automatically includes the necessary
+     * CSS to allow for translucency, even on IE.
+     * 
+     * @function
+     * @param {String} url the URL to the image
+     * @param {String} verticalAlign the CSS value for the image's
+     *     vertical-align
+     * @return {String} a string containing the <code>img</code> tag
+     */
+    g.createTranslucentImageHTML = g.pngIsTranslucent ?
+        g._createTranslucentImageHTML1 :
+        g._createTranslucentImageHTML2;
+
+    return g;
+};
 
 /**
  * Sets the opacity on the given DOM element.

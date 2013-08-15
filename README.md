@@ -47,7 +47,6 @@ SimileAjax is open source software and is licensed under the modified BSD licens
 This code contains libraries found in `src/webapp/api/lib/` that are covered by their own licenses.
 
  * [RequireJS](http://requirejs.org/) is covered by the [modified BSD license](https://github.com/jrburke/requirejs/blob/master/LICENSE).
- * The RequireJS [domReady plugin](http://requirejs.org/docs/api.html#pageload) is covered by the [modified BSD license](https://github.com/requirejs/domReady/blob/master/LICENSE).
  * [almond](https://github.com/jrburke/almond) is covered by the [modified BSD license](https://github.com/jrburke/almond/blob/master/LICENSE).
 
 This code contains libraries found in `lib/` and `optimize/` that support development that are covered by their own licenses.

@@ -3,12 +3,13 @@
  * @name SimileAjax.XmlHttp
  */
 
-SimileAjax.XmlHttp = new Object();
+define(["./debug", "./platform"], function(Debug, Platform) {
+var XmlHttp = new Object();
 
 /**
  *  Callback for XMLHttp onRequestStateChange.
  */
-SimileAjax.XmlHttp._onReadyStateChange = function(xmlhttp, fError, fDone) {
+XmlHttp._onReadyStateChange = function(xmlhttp, fError, fDone) {
     switch (xmlhttp.readyState) {
     // 1: Request not yet made
     // 2: Contact established with server but nothing downloaded yet
@@ -33,7 +34,7 @@ SimileAjax.XmlHttp._onReadyStateChange = function(xmlhttp, fError, fDone) {
                 }
             }
         } catch (e) {
-            SimileAjax.Debug.exception("XmlHttp: Error handling onReadyStateChange", e);
+            Debug.exception("XmlHttp: Error handling onReadyStateChange", e);
         }
         break;
     }
@@ -45,8 +46,8 @@ SimileAjax.XmlHttp._onReadyStateChange = function(xmlhttp, fError, fDone) {
  *  instantiating an XMLHttpRequest object and then replaces
  *  itself with that function.
  */
-SimileAjax.XmlHttp._createRequest = function() {
-    if (SimileAjax.Platform.browser.isIE) {
+XmlHttp._createRequest = function() {
+    if (Platform.browser.isIE) {
         var programIDs = [
         "Msxml2.XMLHTTP",
         "Microsoft.XMLHTTP",
@@ -60,12 +61,12 @@ SimileAjax.XmlHttp._createRequest = function() {
                 };
                 var o = f();
                 
-                // We are replacing the SimileAjax._createXmlHttpRequest
+                // We are replacing the _createXmlHttpRequest
                 // function with this inner function as we've
                 // found out that it works. This is so that we
                 // don't have to do all the testing over again
                 // on subsequent calls.
-                SimileAjax.XmlHttp._createRequest = f;
+                XmlHttp._createRequest = f;
                 
                 return o;
             } catch (e) {
@@ -81,12 +82,12 @@ SimileAjax.XmlHttp._createRequest = function() {
         };
         var o = f();
         
-        // We are replacing the SimileAjax._createXmlHttpRequest
+        // We are replacing the _createXmlHttpRequest
         // function with this inner function as we've
         // found out that it works. This is so that we
         // don't have to do all the testing over again
         // on subsequent calls.
-        SimileAjax.XmlHttp._createRequest = f;
+        XmlHttp._createRequest = f;
         
         return o;
     } catch (e) {
@@ -101,12 +102,12 @@ SimileAjax.XmlHttp._createRequest = function() {
      function(statusText, statusCode, xmlhttp)
  * @param {Function} fDone a function of the form function(xmlhttp)
  */
-SimileAjax.XmlHttp.get = function(url, fError, fDone) {
-    var xmlhttp = SimileAjax.XmlHttp._createRequest();
+XmlHttp.get = function(url, fError, fDone) {
+    var xmlhttp = XmlHttp._createRequest();
     
     xmlhttp.open("GET", url, true);
     xmlhttp.onreadystatechange = function() {
-        SimileAjax.XmlHttp._onReadyStateChange(xmlhttp, fError, fDone);
+        XmlHttp._onReadyStateChange(xmlhttp, fError, fDone);
     };
     xmlhttp.send(null);
 };
@@ -118,20 +119,23 @@ SimileAjax.XmlHttp.get = function(url, fError, fDone) {
      function(statusText, statusCode, xmlhttp)
  * @param {Function} fDone a function of the form function(xmlhttp)
  */
-SimileAjax.XmlHttp.post = function(url, body, fError, fDone) {
-    var xmlhttp = SimileAjax.XmlHttp._createRequest();
+XmlHttp.post = function(url, body, fError, fDone) {
+    var xmlhttp = XmlHttp._createRequest();
     
     xmlhttp.open("POST", url, true);
     xmlhttp.onreadystatechange = function() {
-        SimileAjax.XmlHttp._onReadyStateChange(xmlhttp, fError, fDone);
+        XmlHttp._onReadyStateChange(xmlhttp, fError, fDone);
     };
     xmlhttp.send(body);
 };
 
-SimileAjax.XmlHttp._forceXML = function(xmlhttp) {
+XmlHttp._forceXML = function(xmlhttp) {
     try {
         xmlhttp.overrideMimeType("text/xml");
     } catch (e) {
         xmlhttp.setrequestheader("Content-Type", "text/xml");
     }
 };
+
+    return XmlHttp;
+});

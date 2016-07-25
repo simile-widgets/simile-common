@@ -15,21 +15,26 @@
  *
  *  By default, the history keeps track of upto 10 actions. You can 
  *  configure this behavior by setting 
- *      SimileAjax.History.maxHistoryLength
+ *      SAHistory.maxHistoryLength
  *  to a different number.
  *
  *  An iframe is inserted into the document's body element to track 
  *  onload events.
  *======================================================================
  */
- 
-SimileAjax.History = {
+define([
+    "./ajax",
+    "./dom",
+    "./debug",
+    "./window-manager"
+], function(ListenerQueue, DOM, Debug, WindowManager) {
+var SAHistory = {
     maxHistoryLength:       10,
     historyFile:            "__history__.html",
     enabled:               true,
     
     _initialized:           false,
-    _listeners:             new SimileAjax.ListenerQueue(),
+    _listeners:             new ListenerQueue(),
     
     _actions:               [],
     _baseIndex:             0,
@@ -38,16 +43,16 @@ SimileAjax.History = {
     _plainDocumentTitle:    document.title
 };
 
-SimileAjax.History.formatHistoryEntryTitle = function(actionLabel) {
-    return SimileAjax.History._plainDocumentTitle + " {" + actionLabel + "}";
+SAHistory.formatHistoryEntryTitle = function(actionLabel) {
+    return SAHistory._plainDocumentTitle + " {" + actionLabel + "}";
 };
 
-SimileAjax.History.initialize = function() {
-    if (SimileAjax.History._initialized) {
+SAHistory.initialize = function() {
+    if (SAHistory._initialized) {
         return;
     }
     
-    if (SimileAjax.History.enabled) {
+    if (SAHistory.enabled) {
         var iframe = document.createElement("iframe");
         iframe.id = "simile-ajax-history";
         iframe.style.position = "absolute";
@@ -56,79 +61,73 @@ SimileAjax.History.initialize = function() {
         iframe.style.top = "0px";
         iframe.style.left = "0px";
         iframe.style.visibility = "hidden";
-        iframe.src = SimileAjax.History.historyFile + "?0";
+        iframe.src = SAHistory.historyFile + "?0";
         
         document.body.appendChild(iframe);
-        SimileAjax.DOM.registerEvent(iframe, "load", SimileAjax.History._handleIFrameOnLoad);
+        DOM.registerEvent(iframe, "load", SAHistory._handleIFrameOnLoad);
         
-        SimileAjax.History._iframe = iframe;
+        SAHistory._iframe = iframe;
     }
-    SimileAjax.History._initialized = true;
+    SAHistory._initialized = true;
 };
 
-SimileAjax.History.addListener = function(listener) {
-    SimileAjax.History.initialize();
-    
-    SimileAjax.History._listeners.add(listener);
+SAHistory.addListener = function(listener) {
+    SAHistory._listeners.add(listener);
 };
 
-SimileAjax.History.removeListener = function(listener) {
-    SimileAjax.History.initialize();
-    
-    SimileAjax.History._listeners.remove(listener);
+SAHistory.removeListener = function(listener) {
+    SAHistory._listeners.remove(listener);
 };
 
-SimileAjax.History.addAction = function(action) {
-    SimileAjax.History.initialize();
-    
-    SimileAjax.History._listeners.fire("onBeforePerform", [ action ]);
+SAHistory.addAction = function(action) {
+    SAHistory._listeners.fire("onBeforePerform", [ action ]);
     window.setTimeout(function() {
         try {
             action.perform();
-            SimileAjax.History._listeners.fire("onAfterPerform", [ action ]);
+            SAHistory._listeners.fire("onAfterPerform", [ action ]);
                 
-            if (SimileAjax.History.enabled) {
-                SimileAjax.History._actions = SimileAjax.History._actions.slice(
-                    0, SimileAjax.History._currentIndex - SimileAjax.History._baseIndex);
+            if (SAHistory.enabled) {
+                SAHistory._actions = SAHistory._actions.slice(
+                    0, SAHistory._currentIndex - SAHistory._baseIndex);
                     
-                SimileAjax.History._actions.push(action);
-                SimileAjax.History._currentIndex++;
+                SAHistory._actions.push(action);
+                SAHistory._currentIndex++;
                 
-                var diff = SimileAjax.History._actions.length - SimileAjax.History.maxHistoryLength;
+                var diff = SAHistory._actions.length - SAHistory.maxHistoryLength;
                 if (diff > 0) {
-                    SimileAjax.History._actions = SimileAjax.History._actions.slice(diff);
-                    SimileAjax.History._baseIndex += diff;
+                    SAHistory._actions = SAHistory._actions.slice(diff);
+                    SAHistory._baseIndex += diff;
                 }
                 
                 try {
-                    SimileAjax.History._iframe.contentWindow.location.search = 
-                        "?" + SimileAjax.History._currentIndex;
+                    SAHistory._iframe.contentWindow.location.search = 
+                        "?" + SAHistory._currentIndex;
                 } catch (e) {
                     /*
                      *  We can't modify location.search most probably because it's a file:// url.
                      *  We'll just going to modify the document's title.
                      */
-                    var title = SimileAjax.History.formatHistoryEntryTitle(action.label);
+                    var title = SAHistory.formatHistoryEntryTitle(action.label);
                     document.title = title;
                 }
             }
         } catch (e) {
-            SimileAjax.Debug.exception(e, "Error adding action {" + action.label + "} to history");
+            Debug.exception(e, "Error adding action {" + action.label + "} to history");
         }
     }, 0);
 };
 
-SimileAjax.History.addLengthyAction = function(perform, undo, label) {
-    SimileAjax.History.addAction({
+SAHistory.addLengthyAction = function(perform, undo, label) {
+    SAHistory.addAction({
         perform:    perform,
         undo:       undo,
         label:      label,
-        uiLayer:    SimileAjax.WindowManager.getBaseLayer(),
+        uiLayer:    WindowManager.getBaseLayer(),
         lengthy:    true
     });
 };
 
-SimileAjax.History._handleIFrameOnLoad = function() {
+SAHistory._handleIFrameOnLoad = function() {
     /*
      *  This function is invoked when the user herself
      *  navigates backward or forward. We need to adjust
@@ -136,64 +135,64 @@ SimileAjax.History._handleIFrameOnLoad = function() {
      */
     
     try {
-        var q = SimileAjax.History._iframe.contentWindow.location.search;
+        var q = SAHistory._iframe.contentWindow.location.search;
         var c = (q.length == 0) ? 0 : Math.max(0, parseInt(q.substr(1)));
         
         var finishUp = function() {
-            var diff = c - SimileAjax.History._currentIndex;
-            SimileAjax.History._currentIndex += diff;
-            SimileAjax.History._baseIndex += diff;
+            var diff = c - SAHistory._currentIndex;
+            SAHistory._currentIndex += diff;
+            SAHistory._baseIndex += diff;
                 
-            SimileAjax.History._iframe.contentWindow.location.search = "?" + c;
+            SAHistory._iframe.contentWindow.location.search = "?" + c;
         };
         
-        if (c < SimileAjax.History._currentIndex) { // need to undo
-            SimileAjax.History._listeners.fire("onBeforeUndoSeveral", []);
+        if (c < SAHistory._currentIndex) { // need to undo
+            SAHistory._listeners.fire("onBeforeUndoSeveral", []);
             window.setTimeout(function() {
-                while (SimileAjax.History._currentIndex > c && 
-                       SimileAjax.History._currentIndex > SimileAjax.History._baseIndex) {
+                while (SAHistory._currentIndex > c && 
+                       SAHistory._currentIndex > SAHistory._baseIndex) {
                        
-                    SimileAjax.History._currentIndex--;
+                    SAHistory._currentIndex--;
                     
-                    var action = SimileAjax.History._actions[SimileAjax.History._currentIndex - SimileAjax.History._baseIndex];
+                    var action = SAHistory._actions[SAHistory._currentIndex - SAHistory._baseIndex];
                     
                     try {
                         action.undo();
                     } catch (e) {
-                        SimileAjax.Debug.exception(e, "History: Failed to undo action {" + action.label + "}");
+                        Debug.exception(e, "History: Failed to undo action {" + action.label + "}");
                     }
                 }
                 
-                SimileAjax.History._listeners.fire("onAfterUndoSeveral", []);
+                SAHistory._listeners.fire("onAfterUndoSeveral", []);
                 finishUp();
             }, 0);
-        } else if (c > SimileAjax.History._currentIndex) { // need to redo
-            SimileAjax.History._listeners.fire("onBeforeRedoSeveral", []);
+        } else if (c > SAHistory._currentIndex) { // need to redo
+            SAHistory._listeners.fire("onBeforeRedoSeveral", []);
             window.setTimeout(function() {
-                while (SimileAjax.History._currentIndex < c && 
-                       SimileAjax.History._currentIndex - SimileAjax.History._baseIndex < SimileAjax.History._actions.length) {
+                while (SAHistory._currentIndex < c && 
+                       SAHistory._currentIndex - SAHistory._baseIndex < SAHistory._actions.length) {
                        
-                    var action = SimileAjax.History._actions[SimileAjax.History._currentIndex - SimileAjax.History._baseIndex];
+                    var action = SAHistory._actions[SAHistory._currentIndex - SAHistory._baseIndex];
                     
                     try {
                         action.perform();
                     } catch (e) {
-                        SimileAjax.Debug.exception(e, "History: Failed to redo action {" + action.label + "}");
+                        Debug.exception(e, "History: Failed to redo action {" + action.label + "}");
                     }
                     
-                    SimileAjax.History._currentIndex++;
+                    SAHistory._currentIndex++;
                 }
                 
-                SimileAjax.History._listeners.fire("onAfterRedoSeveral", []);
+                SAHistory._listeners.fire("onAfterRedoSeveral", []);
                 finishUp();
             }, 0);
         } else {
-            var index = SimileAjax.History._currentIndex - SimileAjax.History._baseIndex - 1;
-            var title = (index >= 0 && index < SimileAjax.History._actions.length) ?
-                SimileAjax.History.formatHistoryEntryTitle(SimileAjax.History._actions[index].label) :
-                SimileAjax.History._plainDocumentTitle;
+            var index = SAHistory._currentIndex - SAHistory._baseIndex - 1;
+            var title = (index >= 0 && index < SAHistory._actions.length) ?
+                SAHistory.formatHistoryEntryTitle(SAHistory._actions[index].label) :
+                SAHistory._plainDocumentTitle;
                 
-            SimileAjax.History._iframe.contentWindow.document.title = title;
+            SAHistory._iframe.contentWindow.document.title = title;
             document.title = title;
         }
     } catch (e) {
@@ -201,20 +200,23 @@ SimileAjax.History._handleIFrameOnLoad = function() {
     }
 };
 
-SimileAjax.History.getNextUndoAction = function() {
+SAHistory.getNextUndoAction = function() {
     try {
-        var index = SimileAjax.History._currentIndex - SimileAjax.History._baseIndex - 1;
-        return SimileAjax.History._actions[index];
+        var index = SAHistory._currentIndex - SAHistory._baseIndex - 1;
+        return SAHistory._actions[index];
     } catch (e) {
         return null;
     }
 };
 
-SimileAjax.History.getNextRedoAction = function() {
+SAHistory.getNextRedoAction = function() {
     try {
-        var index = SimileAjax.History._currentIndex - SimileAjax.History._baseIndex;
-        return SimileAjax.History._actions[index];
+        var index = SAHistory._currentIndex - SAHistory._baseIndex;
+        return SAHistory._actions[index];
     } catch (e) {
         return null;
     }
 };
+
+    return SAHistory;
+});

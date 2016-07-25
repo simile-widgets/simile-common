@@ -3,15 +3,16 @@
  *==================================================
  */
 
-SimileAjax.DOM = new Object();
+define(["./platform"], function(Platform) {
+var DOM = new Object();
 
-SimileAjax.DOM.registerEventWithObject = function(elmt, eventName, obj, handlerName) {
-    SimileAjax.DOM.registerEvent(elmt, eventName, function(elmt2, evt, target) {
+DOM.registerEventWithObject = function(elmt, eventName, obj, handlerName) {
+    DOM.registerEvent(elmt, eventName, function(elmt2, evt, target) {
         return obj[handlerName].call(obj, elmt2, evt, target);
     });
 };
 
-SimileAjax.DOM.registerEvent = function(elmt, eventName, handler) {
+DOM.registerEvent = function(elmt, eventName, handler) {
     var handler2 = function(evt) {
         evt = (evt) ? evt : ((event) ? event : null);
         if (evt) {
@@ -27,14 +28,14 @@ SimileAjax.DOM.registerEvent = function(elmt, eventName, handler) {
         return true;
     }
     
-    if (SimileAjax.Platform.browser.isIE) {
+    if (Platform.browser.isIE) {
         elmt.attachEvent("on" + eventName, handler2);
     } else {
         elmt.addEventListener(eventName, handler2, false);
     }
 };
 
-SimileAjax.DOM.getPageCoordinates = function(elmt) {
+DOM.getPageCoordinates = function(elmt) {
     var left = 0;
     var top = 0;
     
@@ -61,7 +62,7 @@ SimileAjax.DOM.getPageCoordinates = function(elmt) {
     return { left: left, top: top };
 };
 
-SimileAjax.DOM.getSize = function(elmt) {
+DOM.getSize = function(elmt) {
 	var w = this.getStyle(elmt,"width");
 	var h = this.getStyle(elmt,"height");
 	if (w.indexOf("px") > -1) w = w.replace("px","");
@@ -72,7 +73,7 @@ SimileAjax.DOM.getSize = function(elmt) {
 	}
 }
 
-SimileAjax.DOM.getStyle = function(elmt, styleProp) {
+DOM.getStyle = function(elmt, styleProp) {
     if (elmt.currentStyle) { // IE
         var style = elmt.currentStyle[styleProp];
     } else if (window.getComputedStyle) { // standard DOM
@@ -83,10 +84,10 @@ SimileAjax.DOM.getStyle = function(elmt, styleProp) {
     return style;
 }
 
-SimileAjax.DOM.getEventRelativeCoordinates = function(evt, elmt) {
-    if (SimileAjax.Platform.browser.isIE) {
+DOM.getEventRelativeCoordinates = function(evt, elmt) {
+    if (Platform.browser.isIE) {
       if (evt.type == "mousewheel") {
-        var coords = SimileAjax.DOM.getPageCoordinates(elmt);
+        var coords = DOM.getPageCoordinates(elmt);
         return {
           x: evt.clientX - coords.left, 
           y: evt.clientY - coords.top
@@ -98,11 +99,11 @@ SimileAjax.DOM.getEventRelativeCoordinates = function(evt, elmt) {
         };
       }
     } else {
-        var coords = SimileAjax.DOM.getPageCoordinates(elmt);
+        var coords = DOM.getPageCoordinates(elmt);
 
         if ((evt.type == "DOMMouseScroll") &&
-          SimileAjax.Platform.browser.isFirefox &&
-          (SimileAjax.Platform.browser.majorVersion == 2)) {
+          Platform.browser.isFirefox &&
+          (Platform.browser.majorVersion == 2)) {
           // Due to: https://bugzilla.mozilla.org/show_bug.cgi?id=352179                  
 
           return {
@@ -118,8 +119,8 @@ SimileAjax.DOM.getEventRelativeCoordinates = function(evt, elmt) {
     }
 };
 
-SimileAjax.DOM.getEventPageCoordinates = function(evt) {
-    if (SimileAjax.Platform.browser.isIE) {
+DOM.getEventPageCoordinates = function(evt) {
+    if (Platform.browser.isIE) {
 
         var scrOfY = 0;
         var scrOfX = 0;
@@ -143,11 +144,11 @@ SimileAjax.DOM.getEventPageCoordinates = function(evt) {
     }
 };
 
-SimileAjax.DOM.hittest = function(x, y, except) {
-    return SimileAjax.DOM._hittest(document.body, x, y, except);
+DOM.hittest = function(x, y, except) {
+    return DOM._hittest(document.body, x, y, except);
 };
 
-SimileAjax.DOM._hittest = function(elmt, x, y, except) {
+DOM._hittest = function(elmt, x, y, except) {
     var childNodes = elmt.childNodes;
     outer: for (var i = 0; i < childNodes.length; i++) {
         var childNode = childNodes[i];
@@ -162,7 +163,7 @@ SimileAjax.DOM._hittest = function(elmt, x, y, except) {
              *  Sometimes SPAN elements have zero width and height but
              *  they have children like DIVs that cover non-zero areas.
              */
-            var hitNode = SimileAjax.DOM._hittest(childNode, x, y, except);
+            var hitNode = DOM._hittest(childNode, x, y, except);
             if (hitNode != childNode) {
                 return hitNode;
             }
@@ -178,12 +179,12 @@ SimileAjax.DOM._hittest = function(elmt, x, y, except) {
             }
             
             if (left <= x && top <= y && (x - left) < childNode.offsetWidth && (y - top) < childNode.offsetHeight) {
-                return SimileAjax.DOM._hittest(childNode, x, y, except);
+                return DOM._hittest(childNode, x, y, except);
             } else if (childNode.nodeType == 1 && childNode.tagName == "TR") {
                 /*
                  *  Table row might have cells that span several rows.
                  */
-                var childNode2 = SimileAjax.DOM._hittest(childNode, x, y, except);
+                var childNode2 = DOM._hittest(childNode, x, y, except);
                 if (childNode2 != childNode) {
                     return childNode2;
                 }
@@ -193,7 +194,7 @@ SimileAjax.DOM._hittest = function(elmt, x, y, except) {
     return elmt;
 };
 
-SimileAjax.DOM.cancelEvent = function(evt) {
+DOM.cancelEvent = function(evt) {
     evt.returnValue = false;
     evt.cancelBubble = true;
     if ("preventDefault" in evt) {
@@ -201,7 +202,7 @@ SimileAjax.DOM.cancelEvent = function(evt) {
     }
 };
 
-SimileAjax.DOM.appendClassName = function(elmt, className) {
+DOM.appendClassName = function(elmt, className) {
     var classes = elmt.className.split(" ");
     for (var i = 0; i < classes.length; i++) {
         if (classes[i] == className) {
@@ -212,21 +213,21 @@ SimileAjax.DOM.appendClassName = function(elmt, className) {
     elmt.className = classes.join(" ");
 };
 
-SimileAjax.DOM.createInputElement = function(type) {
+DOM.createInputElement = function(type) {
     var div = document.createElement("div");
     div.innerHTML = "<input type='" + type + "' />";
     
     return div.firstChild;
 };
 
-SimileAjax.DOM.createDOMFromTemplate = function(template) {
+DOM.createDOMFromTemplate = function(template) {
     var result = {};
-    result.elmt = SimileAjax.DOM._createDOMFromTemplate(template, result, null);
+    result.elmt = DOM._createDOMFromTemplate(template, result, null);
     
     return result;
 };
 
-SimileAjax.DOM._createDOMFromTemplate = function(templateNode, result, parentElmt) {
+DOM._createDOMFromTemplate = function(templateNode, result, parentElmt) {
     if (templateNode == null) {
         /*
         var node = doc.createTextNode("--null--");
@@ -255,7 +256,7 @@ SimileAjax.DOM._createDOMFromTemplate = function(templateNode, result, parentElm
             }
             if (elmt == null) {
                 elmt = tag == "input" ?
-                    SimileAjax.DOM.createInputElement(templateNode.type) :
+                    DOM.createInputElement(templateNode.type) :
                     document.createElement(tag);
                     
                 if (parentElmt != null) {
@@ -287,13 +288,13 @@ SimileAjax.DOM._createDOMFromTemplate = function(templateNode, result, parentElm
                 for (n in value) {
                     var v = value[n];
                     if (n == "float") {
-                        n = SimileAjax.Platform.browser.isIE ? "styleFloat" : "cssFloat";
+                        n = Platform.browser.isIE ? "styleFloat" : "cssFloat";
                     }
                     elmt.style[n] = v;
                 }
             } else if (attribute == "children") {
                 for (var i = 0; i < value.length; i++) {
-                    SimileAjax.DOM._createDOMFromTemplate(value[i], result, elmt);
+                    DOM._createDOMFromTemplate(value[i], result, elmt);
                 }
             } else if (attribute != "tag" && attribute != "elmt") {
                 elmt.setAttribute(attribute, value);
@@ -303,26 +304,26 @@ SimileAjax.DOM._createDOMFromTemplate = function(templateNode, result, parentElm
     }
 }
 
-SimileAjax.DOM._cachedParent = null;
-SimileAjax.DOM.createElementFromString = function(s) {
-    if (SimileAjax.DOM._cachedParent == null) {
-        SimileAjax.DOM._cachedParent = document.createElement("div");
+DOM._cachedParent = null;
+DOM.createElementFromString = function(s) {
+    if (DOM._cachedParent == null) {
+        DOM._cachedParent = document.createElement("div");
     }
-    SimileAjax.DOM._cachedParent.innerHTML = s;
-    return SimileAjax.DOM._cachedParent.firstChild;
+    DOM._cachedParent.innerHTML = s;
+    return DOM._cachedParent.firstChild;
 };
 
-SimileAjax.DOM.createDOMFromString = function(root, s, fieldElmts) {
+DOM.createDOMFromString = function(root, s, fieldElmts) {
     var elmt = typeof root == "string" ? document.createElement(root) : root;
     elmt.innerHTML = s;
     
     var dom = { elmt: elmt };
-    SimileAjax.DOM._processDOMChildrenConstructedFromString(dom, elmt, fieldElmts != null ? fieldElmts : {} );
+    DOM._processDOMChildrenConstructedFromString(dom, elmt, fieldElmts != null ? fieldElmts : {} );
     
     return dom;
 };
 
-SimileAjax.DOM._processDOMConstructedFromString = function(dom, elmt, fieldElmts) {
+DOM._processDOMConstructedFromString = function(dom, elmt, fieldElmts) {
     var id = elmt.id;
     if (id != null && id.length > 0) {
         elmt.removeAttribute("id");
@@ -339,17 +340,20 @@ SimileAjax.DOM._processDOMConstructedFromString = function(dom, elmt, fieldElmts
     }
     
     if (elmt.hasChildNodes()) {
-        SimileAjax.DOM._processDOMChildrenConstructedFromString(dom, elmt, fieldElmts);
+        DOM._processDOMChildrenConstructedFromString(dom, elmt, fieldElmts);
     }
 };
 
-SimileAjax.DOM._processDOMChildrenConstructedFromString = function(dom, elmt, fieldElmts) {
+DOM._processDOMChildrenConstructedFromString = function(dom, elmt, fieldElmts) {
     var node = elmt.firstChild;
     while (node != null) {
         var node2 = node.nextSibling;
         if (node.nodeType == 1) {
-            SimileAjax.DOM._processDOMConstructedFromString(dom, node, fieldElmts);
+            DOM._processDOMConstructedFromString(dom, node, fieldElmts);
         }
         node = node2;
     }
 };
+
+    return DOM;
+});

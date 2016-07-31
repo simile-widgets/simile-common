@@ -20,25 +20,25 @@
   <property name="build.dir"   value="build"/>
   
   <target name="bundle">
-    <exec dir="." executable="node">
+    <exec dir="." executable="nodejs">
       <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build.js"/>
     </exec>
   </target>
 
   <target name="bundle-require">
-    <exec dir="." executable="node">
+    <exec dir="." executable="nodejs">
       <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build-require.js"/>
     </exec>
   </target>
 
   <target name="bundle-css">
-    <exec dir="." executable="node">
+    <exec dir="." executable="nodejs">
       <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build-css.js"/>
     </exec>
   </target>
   
   <target name="bundle-debug">
-    <exec dir="." executable="node">
+    <exec dir="." executable="nodejs">
       <arg line="${rjs.dir}/r.js -o ${rjs.dir}/build.js optimize=none out=build/simile-ajax-api-debug.js"/>
     </exec>
     <copy file="${build.dir}/simile-ajax-api-debug.js" todir="${api.dir}"/>

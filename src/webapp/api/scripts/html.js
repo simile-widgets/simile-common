@@ -3,11 +3,12 @@
  *==================================================
  */
 
-SimileAjax.HTML = new Object();
+define(function() {
+var HTML = new Object();
 
-SimileAjax.HTML._e2uHash = {};
+HTML._e2uHash = {};
 (function() {
-    var e2uHash = SimileAjax.HTML._e2uHash;
+    var e2uHash = HTML._e2uHash;
     e2uHash['nbsp']= '\u00A0';
     e2uHash['iexcl']= '\u00A1';
     e2uHash['cent']= '\u00A2';
@@ -262,8 +263,8 @@ SimileAjax.HTML._e2uHash = {};
     e2uHash['diams']= '\u2666'; 
 })();
 
-SimileAjax.HTML.deEntify = function(s) {
-    var e2uHash = SimileAjax.HTML._e2uHash;
+HTML.deEntify = function(s) {
+    var e2uHash = HTML._e2uHash;
     
     var re = /&(\w+?);/;
     while (re.test(s)) {
@@ -272,3 +273,6 @@ SimileAjax.HTML.deEntify = function(s) {
     }
     return s;
 };
+
+    return HTML;
+});

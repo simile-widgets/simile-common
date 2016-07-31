@@ -9,7 +9,13 @@
  *  they belong to. It also provides window-wide dragging 
  *  implementation.
  */ 
-SimileAjax.WindowManager = {
+define([
+    "./dom",
+    "./debug",
+    "./graphics",
+    "./simile-ajax-base"
+], function(DOM, Debug, Graphics, SimileAjax) {
+var WindowManager = {
     _initialized:       false,
     _listeners:         [],
     
@@ -24,47 +30,40 @@ SimileAjax.WindowManager = {
     _layers:            []
 };
 
-SimileAjax.WindowManager.initialize = function() {
-    if (SimileAjax.WindowManager._initialized) {
+WindowManager.initialize = function() {
+    if (WindowManager._initialized) {
         return;
     }
     
-    SimileAjax.DOM.registerEvent(document.body, "mousedown", SimileAjax.WindowManager._onBodyMouseDown);
-    SimileAjax.DOM.registerEvent(document.body, "mousemove", SimileAjax.WindowManager._onBodyMouseMove);
-    SimileAjax.DOM.registerEvent(document.body, "mouseup",   SimileAjax.WindowManager._onBodyMouseUp);
-    SimileAjax.DOM.registerEvent(document, "keydown",       SimileAjax.WindowManager._onBodyKeyDown);
-    SimileAjax.DOM.registerEvent(document, "keyup",         SimileAjax.WindowManager._onBodyKeyUp);
+    DOM.registerEvent(document.body, "mousedown", WindowManager._onBodyMouseDown);
+    DOM.registerEvent(document.body, "mousemove", WindowManager._onBodyMouseMove);
+    DOM.registerEvent(document.body, "mouseup",   WindowManager._onBodyMouseUp);
+    DOM.registerEvent(document, "keydown",       WindowManager._onBodyKeyDown);
+    DOM.registerEvent(document, "keyup",         WindowManager._onBodyKeyUp);
     
-    SimileAjax.WindowManager._layers.push({index: 0});
-    
-    SimileAjax.WindowManager._historyListener = {
-        onBeforeUndoSeveral:    function() {},
-        onAfterUndoSeveral:     function() {},
-        onBeforeUndo:           function() {},
-        onAfterUndo:            function() {},
-        
-        onBeforeRedoSeveral:    function() {},
-        onAfterRedoSeveral:     function() {},
-        onBeforeRedo:           function() {},
-        onAfterRedo:            function() {}
-    };
-    SimileAjax.History.addListener(SimileAjax.WindowManager._historyListener);
-    
-    SimileAjax.WindowManager._initialized = true;
+    WindowManager._layers.push({index: 0});
+
+    // @@@ There were pieces here to assemble a no-op history listener
+    //     and add it to the SimileAjax.History listener stack, but I
+    //     suspect it was only here to make sure history initialized
+    //     before window manager.  I've simply put calls to init both
+    //     in the overall SimileAjax.load() method.  This breaks a
+    //     terrible dependency cycle that sat between them.  If I'm
+    //     wrong, another solution needs to be found.
+
+    WindowManager._initialized = true;
 };
 
-SimileAjax.WindowManager.getBaseLayer = function() {
-    SimileAjax.WindowManager.initialize();
-    return SimileAjax.WindowManager._layers[0];
+WindowManager.getBaseLayer = function() {
+    return WindowManager._layers[0];
 };
 
-SimileAjax.WindowManager.getHighestLayer = function() {
-    SimileAjax.WindowManager.initialize();
-    return SimileAjax.WindowManager._layers[SimileAjax.WindowManager._layers.length - 1];
+WindowManager.getHighestLayer = function() {
+    return WindowManager._layers[WindowManager._layers.length - 1];
 };
 
-SimileAjax.WindowManager.registerEventWithObject = function(elmt, eventName, obj, handlerName, layer) {
-    SimileAjax.WindowManager.registerEvent(
+WindowManager.registerEventWithObject = function(elmt, eventName, obj, handlerName, layer) {
+    WindowManager.registerEvent(
         elmt, 
         eventName, 
         function(elmt2, evt, target) {
@@ -74,62 +73,62 @@ SimileAjax.WindowManager.registerEventWithObject = function(elmt, eventName, obj
     );
 };
 
-SimileAjax.WindowManager.registerEvent = function(elmt, eventName, handler, layer) {
+WindowManager.registerEvent = function(elmt, eventName, handler, layer) {
     if (layer == null) {
-        layer = SimileAjax.WindowManager.getHighestLayer();
+        layer = WindowManager.getHighestLayer();
     }
     
     var handler2 = function(elmt, evt, target) {
-        if (SimileAjax.WindowManager._canProcessEventAtLayer(layer)) {
-            SimileAjax.WindowManager._popToLayer(layer.index);
+        if (WindowManager._canProcessEventAtLayer(layer)) {
+            WindowManager._popToLayer(layer.index);
             try {
                 handler(elmt, evt, target);
             } catch (e) {
-                SimileAjax.Debug.exception(e);
+                Debug.exception(e);
             }
         }
-        SimileAjax.DOM.cancelEvent(evt);
+        DOM.cancelEvent(evt);
         return false;
     }
     
-    SimileAjax.DOM.registerEvent(elmt, eventName, handler2);
+    DOM.registerEvent(elmt, eventName, handler2);
 };
 
-SimileAjax.WindowManager.pushLayer = function(f, ephemeral, elmt) {
-    var layer = { onPop: f, index: SimileAjax.WindowManager._layers.length, ephemeral: (ephemeral), elmt: elmt };
-    SimileAjax.WindowManager._layers.push(layer);
+WindowManager.pushLayer = function(f, ephemeral, elmt) {
+    var layer = { onPop: f, index: WindowManager._layers.length, ephemeral: (ephemeral), elmt: elmt };
+    WindowManager._layers.push(layer);
     
     return layer;
 };
 
-SimileAjax.WindowManager.popLayer = function(layer) {
-    for (var i = 1; i < SimileAjax.WindowManager._layers.length; i++) {
-        if (SimileAjax.WindowManager._layers[i] == layer) {
-            SimileAjax.WindowManager._popToLayer(i - 1);
+WindowManager.popLayer = function(layer) {
+    for (var i = 1; i < WindowManager._layers.length; i++) {
+        if (WindowManager._layers[i] == layer) {
+            WindowManager._popToLayer(i - 1);
             break;
         }
     }
 };
 
-SimileAjax.WindowManager.popAllLayers = function() {
-    SimileAjax.WindowManager._popToLayer(0);
+WindowManager.popAllLayers = function() {
+    WindowManager._popToLayer(0);
 };
 
-SimileAjax.WindowManager.registerForDragging = function(elmt, callback, layer) {
-    SimileAjax.WindowManager.registerEvent(
+WindowManager.registerForDragging = function(elmt, callback, layer) {
+    WindowManager.registerEvent(
         elmt, 
         "mousedown", 
         function(elmt, evt, target) {
-            SimileAjax.WindowManager._handleMouseDown(elmt, evt, callback);
+            WindowManager._handleMouseDown(elmt, evt, callback);
         }, 
         layer
     );
 };
 
-SimileAjax.WindowManager._popToLayer = function(level) {
-    while (level+1 < SimileAjax.WindowManager._layers.length) {
+WindowManager._popToLayer = function(level) {
+    while (level+1 < WindowManager._layers.length) {
         try {
-            var layer = SimileAjax.WindowManager._layers.pop();
+            var layer = WindowManager._layers.pop();
             if (layer.onPop != null) {
                 layer.onPop();
             }
@@ -138,27 +137,27 @@ SimileAjax.WindowManager._popToLayer = function(level) {
     }
 };
 
-SimileAjax.WindowManager._canProcessEventAtLayer = function(layer) {
-    if (layer.index == (SimileAjax.WindowManager._layers.length - 1)) {
+WindowManager._canProcessEventAtLayer = function(layer) {
+    if (layer.index == (WindowManager._layers.length - 1)) {
         return true;
     }
-    for (var i = layer.index + 1; i < SimileAjax.WindowManager._layers.length; i++) {
-        if (!SimileAjax.WindowManager._layers[i].ephemeral) {
+    for (var i = layer.index + 1; i < WindowManager._layers.length; i++) {
+        if (!WindowManager._layers[i].ephemeral) {
             return false;
         }
     }
     return true;
 };
 
-SimileAjax.WindowManager.cancelPopups = function(evt) {
-    var evtCoords = (evt) ? SimileAjax.DOM.getEventPageCoordinates(evt) : { x: -1, y: -1 };
+WindowManager.cancelPopups = function(evt) {
+    var evtCoords = (evt) ? DOM.getEventPageCoordinates(evt) : { x: -1, y: -1 };
     
-    var i = SimileAjax.WindowManager._layers.length - 1;
-    while (i > 0 && SimileAjax.WindowManager._layers[i].ephemeral) {
-        var layer = SimileAjax.WindowManager._layers[i];
+    var i = WindowManager._layers.length - 1;
+    while (i > 0 && WindowManager._layers[i].ephemeral) {
+        var layer = WindowManager._layers[i];
         if (layer.elmt != null) { // if event falls within main element of layer then don't cancel
             var elmt = layer.elmt;
-            var elmtCoords = SimileAjax.DOM.getPageCoordinates(elmt);
+            var elmtCoords = DOM.getPageCoordinates(elmt);
             if (evtCoords.x >= elmtCoords.left && evtCoords.x < (elmtCoords.left + elmt.offsetWidth) &&
                 evtCoords.y >= elmtCoords.top && evtCoords.y < (elmtCoords.top + elmt.offsetHeight)) {
                 break;
@@ -166,63 +165,63 @@ SimileAjax.WindowManager.cancelPopups = function(evt) {
         }
         i--;
     }
-    SimileAjax.WindowManager._popToLayer(i);
+    WindowManager._popToLayer(i);
 };
 
-SimileAjax.WindowManager._onBodyMouseDown = function(elmt, evt, target) {
+WindowManager._onBodyMouseDown = function(elmt, evt, target) {
     if (!("eventPhase" in evt) || evt.eventPhase == evt.BUBBLING_PHASE) {
-        SimileAjax.WindowManager.cancelPopups(evt);
+        WindowManager.cancelPopups(evt);
     }
 };
 
-SimileAjax.WindowManager._handleMouseDown = function(elmt, evt, callback) {
-    SimileAjax.WindowManager._draggedElement = elmt;
-    SimileAjax.WindowManager._draggedElementCallback = callback;
-    SimileAjax.WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
+WindowManager._handleMouseDown = function(elmt, evt, callback) {
+    WindowManager._draggedElement = elmt;
+    WindowManager._draggedElementCallback = callback;
+    WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
         
-    SimileAjax.DOM.cancelEvent(evt);
+    DOM.cancelEvent(evt);
     return false;
 };
 
-SimileAjax.WindowManager._onBodyKeyDown = function(elmt, evt, target) {
-    if (SimileAjax.WindowManager._dragging) {
+WindowManager._onBodyKeyDown = function(elmt, evt, target) {
+    if (WindowManager._dragging) {
         if (evt.keyCode == 27) { // esc
-            SimileAjax.WindowManager._cancelDragging();
-        } else if ((evt.keyCode == 17 || evt.keyCode == 16) && SimileAjax.WindowManager._draggingMode != "copy") {
-            SimileAjax.WindowManager._draggingMode = "copy";
+            WindowManager._cancelDragging();
+        } else if ((evt.keyCode == 17 || evt.keyCode == 16) && WindowManager._draggingMode != "copy") {
+            WindowManager._draggingMode = "copy";
             
-            var img = SimileAjax.Graphics.createTranslucentImage(SimileAjax.urlPrefix + "images/copy.png");
+            var img = Graphics.createTranslucentImage(SimileAjax.urlPrefix + "images/copy.png");
             img.style.position = "absolute";
-            img.style.left = (SimileAjax.WindowManager._ghostCoords.left - 16) + "px";
-            img.style.top = (SimileAjax.WindowManager._ghostCoords.top) + "px";
+            img.style.left = (WindowManager._ghostCoords.left - 16) + "px";
+            img.style.top = (WindowManager._ghostCoords.top) + "px";
             document.body.appendChild(img);
             
-            SimileAjax.WindowManager._draggingModeIndicatorElmt = img;
+            WindowManager._draggingModeIndicatorElmt = img;
         }
     }
 };
 
-SimileAjax.WindowManager._onBodyKeyUp = function(elmt, evt, target) {
-    if (SimileAjax.WindowManager._dragging) {
+WindowManager._onBodyKeyUp = function(elmt, evt, target) {
+    if (WindowManager._dragging) {
         if (evt.keyCode == 17 || evt.keyCode == 16) {
-            SimileAjax.WindowManager._draggingMode = "";
-            if (SimileAjax.WindowManager._draggingModeIndicatorElmt != null) {
-                document.body.removeChild(SimileAjax.WindowManager._draggingModeIndicatorElmt);
-                SimileAjax.WindowManager._draggingModeIndicatorElmt = null;
+            WindowManager._draggingMode = "";
+            if (WindowManager._draggingModeIndicatorElmt != null) {
+                document.body.removeChild(WindowManager._draggingModeIndicatorElmt);
+                WindowManager._draggingModeIndicatorElmt = null;
             }
         }
     }
 };
 
-SimileAjax.WindowManager._onBodyMouseMove = function(elmt, evt, target) {
-    if (SimileAjax.WindowManager._draggedElement != null) {
-        var callback = SimileAjax.WindowManager._draggedElementCallback;
+WindowManager._onBodyMouseMove = function(elmt, evt, target) {
+    if (WindowManager._draggedElement != null) {
+        var callback = WindowManager._draggedElementCallback;
         
-        var lastCoords = SimileAjax.WindowManager._lastCoords;
+        var lastCoords = WindowManager._lastCoords;
         var diffX = evt.clientX - lastCoords.x;
         var diffY = evt.clientY - lastCoords.y;
         
-        if (!SimileAjax.WindowManager._dragging) {
+        if (!WindowManager._dragging) {
             if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
                 try {
                     if ("onDragStart" in callback) {
@@ -230,35 +229,35 @@ SimileAjax.WindowManager._onBodyMouseMove = function(elmt, evt, target) {
                     }
                     
                     if ("ghost" in callback && callback.ghost) {
-                        var draggedElmt = SimileAjax.WindowManager._draggedElement;
+                        var draggedElmt = WindowManager._draggedElement;
                         
-                        SimileAjax.WindowManager._ghostCoords = SimileAjax.DOM.getPageCoordinates(draggedElmt);
-                        SimileAjax.WindowManager._ghostCoords.left += diffX;
-                        SimileAjax.WindowManager._ghostCoords.top += diffY;
+                        WindowManager._ghostCoords = DOM.getPageCoordinates(draggedElmt);
+                        WindowManager._ghostCoords.left += diffX;
+                        WindowManager._ghostCoords.top += diffY;
                         
                         var ghostElmt = draggedElmt.cloneNode(true);
                         ghostElmt.style.position = "absolute";
-                        ghostElmt.style.left = SimileAjax.WindowManager._ghostCoords.left + "px";
-                        ghostElmt.style.top = SimileAjax.WindowManager._ghostCoords.top + "px";
+                        ghostElmt.style.left = WindowManager._ghostCoords.left + "px";
+                        ghostElmt.style.top = WindowManager._ghostCoords.top + "px";
                         ghostElmt.style.zIndex = 1000;
-                        SimileAjax.Graphics.setOpacity(ghostElmt, 50);
+                        Graphics.setOpacity(ghostElmt, 50);
                         
                         document.body.appendChild(ghostElmt);
                         callback._ghostElmt = ghostElmt;
                     }
                     
-                    SimileAjax.WindowManager._dragging = true;
-                    SimileAjax.WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
+                    WindowManager._dragging = true;
+                    WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
                     
                     document.body.focus();
                 } catch (e) {
-                    SimileAjax.Debug.exception("WindowManager: Error handling mouse down", e);
-                    SimileAjax.WindowManager._cancelDragging();
+                    Debug.exception("WindowManager: Error handling mouse down", e);
+                    WindowManager._cancelDragging();
                 }
             }
         } else {
             try {
-                SimileAjax.WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
+                WindowManager._lastCoords = { x: evt.clientX, y: evt.clientY };
                 
                 if ("onDragBy" in callback) {
                     callback.onDragBy(diffX, diffY);
@@ -267,40 +266,40 @@ SimileAjax.WindowManager._onBodyMouseMove = function(elmt, evt, target) {
                 if ("_ghostElmt" in callback) {
                     var ghostElmt = callback._ghostElmt;
                     
-                    SimileAjax.WindowManager._ghostCoords.left += diffX;
-                    SimileAjax.WindowManager._ghostCoords.top += diffY;
+                    WindowManager._ghostCoords.left += diffX;
+                    WindowManager._ghostCoords.top += diffY;
                     
-                    ghostElmt.style.left = SimileAjax.WindowManager._ghostCoords.left + "px";
-                    ghostElmt.style.top = SimileAjax.WindowManager._ghostCoords.top + "px";
-                    if (SimileAjax.WindowManager._draggingModeIndicatorElmt != null) {
-                        var indicatorElmt = SimileAjax.WindowManager._draggingModeIndicatorElmt;
+                    ghostElmt.style.left = WindowManager._ghostCoords.left + "px";
+                    ghostElmt.style.top = WindowManager._ghostCoords.top + "px";
+                    if (WindowManager._draggingModeIndicatorElmt != null) {
+                        var indicatorElmt = WindowManager._draggingModeIndicatorElmt;
                         
-                        indicatorElmt.style.left = (SimileAjax.WindowManager._ghostCoords.left - 16) + "px";
-                        indicatorElmt.style.top = SimileAjax.WindowManager._ghostCoords.top + "px";
+                        indicatorElmt.style.left = (WindowManager._ghostCoords.left - 16) + "px";
+                        indicatorElmt.style.top = WindowManager._ghostCoords.top + "px";
                     }
                     
                     if ("droppable" in callback && callback.droppable) {
-                        var coords = SimileAjax.DOM.getEventPageCoordinates(evt);
-                        var target = SimileAjax.DOM.hittest(
+                        var coords = DOM.getEventPageCoordinates(evt);
+                        var target = DOM.hittest(
                             coords.x, coords.y, 
-                            [   SimileAjax.WindowManager._ghostElmt, 
-                                SimileAjax.WindowManager._dropTargetHighlightElement 
+                            [   WindowManager._ghostElmt, 
+                                WindowManager._dropTargetHighlightElement 
                             ]
                         );
-                        target = SimileAjax.WindowManager._findDropTarget(target);
+                        target = WindowManager._findDropTarget(target);
                         
-                        if (target != SimileAjax.WindowManager._potentialDropTarget) {
-                            if (SimileAjax.WindowManager._dropTargetHighlightElement != null) {
-                                document.body.removeChild(SimileAjax.WindowManager._dropTargetHighlightElement);
+                        if (target != WindowManager._potentialDropTarget) {
+                            if (WindowManager._dropTargetHighlightElement != null) {
+                                document.body.removeChild(WindowManager._dropTargetHighlightElement);
                                 
-                                SimileAjax.WindowManager._dropTargetHighlightElement = null;
-                                SimileAjax.WindowManager._potentialDropTarget = null;
+                                WindowManager._dropTargetHighlightElement = null;
+                                WindowManager._potentialDropTarget = null;
                             }
 
                             var droppable = false;
                             if (target != null) {
                                 if ((!("canDropOn" in callback) || callback.canDropOn(target)) &&
-                                    (!("canDrop" in target) || target.canDrop(SimileAjax.WindowManager._draggedElement))) {
+                                    (!("canDrop" in target) || target.canDrop(WindowManager._draggedElement))) {
                                     
                                     droppable = true;
                                 }
@@ -308,7 +307,7 @@ SimileAjax.WindowManager._onBodyMouseMove = function(elmt, evt, target) {
                             
                             if (droppable) {
                                 var border = 4;
-                                var targetCoords = SimileAjax.DOM.getPageCoordinates(target);
+                                var targetCoords = DOM.getPageCoordinates(target);
                                 var highlight = document.createElement("div");
                                 highlight.style.border = border + "px solid yellow";
                                 highlight.style.backgroundColor = "yellow";
@@ -317,46 +316,46 @@ SimileAjax.WindowManager._onBodyMouseMove = function(elmt, evt, target) {
                                 highlight.style.top = targetCoords.top + "px";
                                 highlight.style.width = (target.offsetWidth - border * 2) + "px";
                                 highlight.style.height = (target.offsetHeight - border * 2) + "px";
-                                SimileAjax.Graphics.setOpacity(highlight, 30);
+                                Graphics.setOpacity(highlight, 30);
                                 document.body.appendChild(highlight);
                                 
-                                SimileAjax.WindowManager._potentialDropTarget = target;
-                                SimileAjax.WindowManager._dropTargetHighlightElement = highlight;
+                                WindowManager._potentialDropTarget = target;
+                                WindowManager._dropTargetHighlightElement = highlight;
                             }
                         }
                     }
                 }
             } catch (e) {
-                SimileAjax.Debug.exception("WindowManager: Error handling mouse move", e);
-                SimileAjax.WindowManager._cancelDragging();
+                Debug.exception("WindowManager: Error handling mouse move", e);
+                WindowManager._cancelDragging();
             }
         }
         
-        SimileAjax.DOM.cancelEvent(evt);
+        DOM.cancelEvent(evt);
         return false;
     }
 };
 
-SimileAjax.WindowManager._onBodyMouseUp = function(elmt, evt, target) {
-    if (SimileAjax.WindowManager._draggedElement != null) {
+WindowManager._onBodyMouseUp = function(elmt, evt, target) {
+    if (WindowManager._draggedElement != null) {
         try {
-            if (SimileAjax.WindowManager._dragging) {
-                var callback = SimileAjax.WindowManager._draggedElementCallback;
+            if (WindowManager._dragging) {
+                var callback = WindowManager._draggedElementCallback;
                 if ("onDragEnd" in callback) {
                     callback.onDragEnd();
                 }
                 if ("droppable" in callback && callback.droppable) {
                     var dropped = false;
                     
-                    var target = SimileAjax.WindowManager._potentialDropTarget;
+                    var target = WindowManager._potentialDropTarget;
                     if (target != null) {
                         if ((!("canDropOn" in callback) || callback.canDropOn(target)) &&
-                            (!("canDrop" in target) || target.canDrop(SimileAjax.WindowManager._draggedElement))) {
+                            (!("canDrop" in target) || target.canDrop(WindowManager._draggedElement))) {
                             
                             if ("onDropOn" in callback) {
                                 callback.onDropOn(target);
                             }
-                            target.ondrop(SimileAjax.WindowManager._draggedElement, SimileAjax.WindowManager._draggingMode);
+                            target.ondrop(WindowManager._draggedElement, WindowManager._draggingMode);
                             
                             dropped = true;
                         }
@@ -368,42 +367,42 @@ SimileAjax.WindowManager._onBodyMouseUp = function(elmt, evt, target) {
                 }
             }
         } finally {
-            SimileAjax.WindowManager._cancelDragging();
+            WindowManager._cancelDragging();
         }
         
-        SimileAjax.DOM.cancelEvent(evt);
+        DOM.cancelEvent(evt);
         return false;
     }
 };
 
-SimileAjax.WindowManager._cancelDragging = function() {
-    var callback = SimileAjax.WindowManager._draggedElementCallback;
+WindowManager._cancelDragging = function() {
+    var callback = WindowManager._draggedElementCallback;
     if ("_ghostElmt" in callback) {
         var ghostElmt = callback._ghostElmt;
         document.body.removeChild(ghostElmt);
         
         delete callback._ghostElmt;
     }
-    if (SimileAjax.WindowManager._dropTargetHighlightElement != null) {
-        document.body.removeChild(SimileAjax.WindowManager._dropTargetHighlightElement);
-        SimileAjax.WindowManager._dropTargetHighlightElement = null;
+    if (WindowManager._dropTargetHighlightElement != null) {
+        document.body.removeChild(WindowManager._dropTargetHighlightElement);
+        WindowManager._dropTargetHighlightElement = null;
     }
-    if (SimileAjax.WindowManager._draggingModeIndicatorElmt != null) {
-        document.body.removeChild(SimileAjax.WindowManager._draggingModeIndicatorElmt);
-        SimileAjax.WindowManager._draggingModeIndicatorElmt = null;
+    if (WindowManager._draggingModeIndicatorElmt != null) {
+        document.body.removeChild(WindowManager._draggingModeIndicatorElmt);
+        WindowManager._draggingModeIndicatorElmt = null;
     }
     
-    SimileAjax.WindowManager._draggedElement = null;
-    SimileAjax.WindowManager._draggedElementCallback = null;
-    SimileAjax.WindowManager._potentialDropTarget = null;
-    SimileAjax.WindowManager._dropTargetHighlightElement = null;
-    SimileAjax.WindowManager._lastCoords = null;
-    SimileAjax.WindowManager._ghostCoords = null;
-    SimileAjax.WindowManager._draggingMode = "";
-    SimileAjax.WindowManager._dragging = false;
+    WindowManager._draggedElement = null;
+    WindowManager._draggedElementCallback = null;
+    WindowManager._potentialDropTarget = null;
+    WindowManager._dropTargetHighlightElement = null;
+    WindowManager._lastCoords = null;
+    WindowManager._ghostCoords = null;
+    WindowManager._draggingMode = "";
+    WindowManager._dragging = false;
 };
 
-SimileAjax.WindowManager._findDropTarget = function(elmt) {
+WindowManager._findDropTarget = function(elmt) {
     while (elmt != null) {
         if ("ondrop" in elmt && (typeof elmt.ondrop) == "function") {
             break;
@@ -412,3 +411,6 @@ SimileAjax.WindowManager._findDropTarget = function(elmt) {
     }
     return elmt;
 };
+
+    return WindowManager;
+});

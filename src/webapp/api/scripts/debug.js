@@ -3,11 +3,12 @@
  *==================================================
  */
 
-SimileAjax.Debug = {
+define(["./simile-ajax-base"], function(SimileAjax) {
+var Debug = {
     silent: false
 };
 
-SimileAjax.Debug.log = function(msg) {
+Debug.log = function(msg) {
     var f;
     if ("console" in window && "log" in window.console) { // FireBug installed
         f = function(msg2) {
@@ -15,16 +16,16 @@ SimileAjax.Debug.log = function(msg) {
         }
     } else {
         f = function(msg2) {
-            if (!SimileAjax.Debug.silent) {
+            if (!Debug.silent) {
                 alert(msg2);
             }
         }
     }
-    SimileAjax.Debug.log = f;
+    Debug.log = f;
     f(msg);
 };
 
-SimileAjax.Debug.warn = function(msg) {
+Debug.warn = function(msg) {
     var f;
     if ("console" in window && "warn" in window.console) { // FireBug installed
         f = function(msg2) {
@@ -32,16 +33,16 @@ SimileAjax.Debug.warn = function(msg) {
         }
     } else {
         f = function(msg2) {
-            if (!SimileAjax.Debug.silent) {
+            if (!Debug.silent) {
                 alert(msg2);
             }
         }
     }
-    SimileAjax.Debug.warn = f;
+    Debug.warn = f;
     f(msg);
 };
 
-SimileAjax.Debug.exception = function(e, msg) {
+Debug.exception = function(e, msg) {
     var f, params = SimileAjax.parseURLParameters();
     if (params.errors == "throw" || SimileAjax.params.errors == "throw") {
         f = function(e2, msg2) {
@@ -58,33 +59,33 @@ SimileAjax.Debug.exception = function(e, msg) {
         };
     } else {
         f = function(e2, msg2) {
-            if (!SimileAjax.Debug.silent) {
+            if (!Debug.silent) {
                 alert("Caught exception: " + msg2 + "\n\nDetails: " + ("description" in e2 ? e2.description : e2));
             }
             throw(e2); // do not hide from browser's native debugging features
         };
     }
-    SimileAjax.Debug.exception = f;
+    Debug.exception = f;
     f(e, msg);
 };
 
-SimileAjax.Debug.objectToString = function(o) {
-    return SimileAjax.Debug._objectToString(o, "");
+Debug.objectToString = function(o) {
+    return Debug._objectToString(o, "");
 };
 
-SimileAjax.Debug._objectToString = function(o, indent) {
+Debug._objectToString = function(o, indent) {
     var indent2 = indent + " ";
     if (typeof o == "object") {
         var s = "{";
         for (n in o) {
-            s += indent2 + n + ": " + SimileAjax.Debug._objectToString(o[n], indent2) + "\n";
+            s += indent2 + n + ": " + Debug._objectToString(o[n], indent2) + "\n";
         }
         s += indent + "}";
         return s;
     } else if (typeof o == "array") {
         var s = "[";
         for (var n = 0; n < o.length; n++) {
-            s += SimileAjax.Debug._objectToString(o[n], indent2) + "\n";
+            s += Debug._objectToString(o[n], indent2) + "\n";
         }
         s += indent + "]";
         return s;
@@ -92,3 +93,6 @@ SimileAjax.Debug._objectToString = function(o, indent) {
         return o;
     }
 };
+
+    return Debug;
+});
